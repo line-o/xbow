@@ -1,0 +1,30 @@
+xquery version "3.1";
+
+import module namespace xbow="http://line-o.de/xbow" at '/db/apps/xbow/xbow.xqm';
+
+(0 to 9)
+    (: using functions from external modules :)
+    => for-each(math:pow(?, 2))
+    => for-each(xs:integer(?))
+    (: filter by using the function returning rule :)
+    => filter(xbow:gt(10))
+    (: all four lines below do the same thing, choose the one that fits you :)
+    => reverse()
+    => sort((), function ($a) { -$a })
+    => xbow:sortBy(function ($a) { -$a })
+    => xbow:ascending()
+    (: return the first item in the sequence :)
+(:    => xbow:take(1):)
+(:    => xs:integer():)
+(:    => fold-left([], function ($result, $next) {:)
+(:        let $rem := ($next mod 2):)
+(:        return array:put($result, $rem, ($result($rem), $next)):)
+(:    }):)
+    (: group by even and odd :)
+    => fold-left(map{'even':(), 'odd':()}, function ($result, $next) {
+        let $field := if ($next mod 2) then ('odd') else ('even')
+        return map:put($result, $field, ($result($field), $next))
+    })
+    => xbow:pluck('even')
+    => sum()
+    (: 81 :)
