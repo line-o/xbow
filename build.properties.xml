@@ -4,7 +4,7 @@
         <author>Juri Leino</author>
         <abbrev>xbow</abbrev>
         <description>Helper function library designed to be used with the arrow operator.</description>
-        <version>1.0.0</version>
+        <version>1.0.1</version>
         <namespace>http://line-o.de/xbow</namespace>
         <website>http://line-o.de/xbow</website>
         <status>alpha</status>
