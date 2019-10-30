@@ -22,8 +22,7 @@ function xbow:take ($s as item()*, $n as xs:integer) as item()* {
 ~:)
 declare
 function xbow:last ($s as item()*, $n as xs:integer) as item()* {
-    let $length := count($s)
-  	return subsequence($s, $n, $length - $n)
+    subsequence($s, $n, count($s) - $n)
 };
 
 
@@ -211,7 +210,6 @@ function xbow:wrap-element ($name) {
     function ($value) { element { $name } { $value } }
 };
 
-
 (:~
  : wrap item(s) in attribute with name $attribute-name
  : returns function that returns an attribute()
@@ -230,6 +228,7 @@ function xbow:wrap-attribute ($value as item()*, $attribute-name as xs:string) {
 (:~
  : wrap each item(s) in node with name $node-name
  : returns function that returns a sequence of elements
+ : Example:
 (
    <$node-name>$item[1]</$node-name>,
    <$node-name>$item[1]</$node-name>,
@@ -259,4 +258,46 @@ function xbow:map-filter-keys ($keys as xs:string*) {
         })
         => map:merge()
     }
+};
+
+(:~
+ : reverse keys and values of a map 
+ : Example:
+    local:map-reverse(map { 'key': 'value'})
+~:)
+declare
+function xbow:map-reverse ($map as map()) {
+    map:for-each($map, function ($k, $v) { map { $v: $k } })
+        => map:merge()
+};
+
+(:~ 
+ : reverse map with non-atomic values
+ : because `local:map-reverse(map { 'key': (1 to 10)})` would throw
+
+ : Example:
+    local:map-reverse(map { 'key': (1 to 10)}, function ($v) { sum($v) })
+
+ : reverse map but do something with the value too
+
+ : Example:
+    local:map-reverse(map { 'key': 'value'}, function ($v) { upper-case($v) }),
+    local:map-reverse(map { 'key': 'value'}, function ($v) { util:uuid($v) })
+ ~:)
+declare
+function xbow:map-reverse ($map as map(), $hash-value as function()) {
+    map:for-each($map,
+        function ($k, $v) {
+            map { $hash-value($v): $k }
+        })
+        => map:merge()
+};
+
+declare
+function xbow:get-type ($item as item()) {
+    typeswitch($item)
+        case element() return node-name($item)
+        case attribute() return local-name($item)
+        case xs:anyAtomicType return 'xs:anyAtomicType'
+        default return 'other'
 };
