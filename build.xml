@@ -1,41 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns:xdb="http://exist-db.org/ant" default="xar" name="xbow" basedir=".">
-    <xmlproperty file="build.properties.local.xml" semanticAttributes="true" keepRoot="false"/>
-    <xmlproperty file="build.properties.xml" semanticAttributes="true" keepRoot="false"/>
-    <property name="build.dir" value="build"/>
-
-    <target name="clean">
-        <echo message="Deleting xar files..."/>
-        <delete dir="${build.dir}"/>
-        <mkdir dir="${build.dir}"/>
-    </target>
-
-    <target name="copy">
-        <copy todir="${build.dir}/${app.abbrev}-${app.version}">
-            <fileset dir="${basedir}"
-                     excludes="${build.dir}/**,build.properties.local.xml,bower.json,build.xml,README.md,.idea/,.editorconfig,.existdb.json,expath-pkg.xml.tmpl,repo.xml.tmpl,bower_components/**,node_modules/**,package.json,local.node-exist.json,gulpfile.js,errorShots/**,reports/**, wdio.*,tests/**/*.js,tests/**"/>
-        </copy>
-        <antcall target="apply-filters"/>
-    </target>
-
-    <target name="apply-filters">
-        <copy todir="${build.dir}/${app.abbrev}-${app.version}" overwrite="true" verbose="true">
-            <fileset file="expath-pkg.xml.tmpl"/>
-            <fileset file="repo.xml.tmpl"/>
-            <filterset>
-                <filter token="author" value="${app.author}"/>
-                <filter token="abbrev" value="${app.abbrev}"/>
-                <filter token="version" value="${app.version}"/>
-                <filter token="namespace" value="${app.namespace}"/>
-                <filter token="description" value="${app.description}"/>
-                <filter token="website" value="${app.website}"/>
-                <filter token="status" value="${app.status}"/>
-            </filterset>
-            <globmapper from="*.tmpl" to="*"/>
-        </copy>
-    </target>
-
-    <target name="xar" depends="clean, copy" description="main target to create application XAR file">
-        <zip basedir="${build.dir}/${app.abbrev}-${app.version}" destfile="${build.dir}/${app.abbrev}-${app.version}.xar"/>
-    </target>
+<project default="all" name="xbow">
+  <description>Shoot arrow (expressions) fast and comfortably</description>
+  <xmlproperty file="expath-pkg.xml"/>
+  <property name="project.version" value="${package(version)}"/>
+  <property name="project.app" value="xbow"/>
+  <property name="build.dir" value="build"/>
+  <!-- Start it -->
+  <target name="init" description="create build directory">
+    <tstamp/>
+    <mkdir dir="${build.dir}"/>
+  </target>
+  <!-- Dev build (includes everything unoptimized) -->
+  <target name="dev" depends="init" description="compile all source files">
+    <zip basedir="." destfile="${build.dir}/${project.app}-${project.version}-dev.xar" excludes="**/${build.dir}/**, **/node_modules/**"/>
+  </target>
+  <!-- Release build -->
+  <target name="deploy" depends="init" description="compile release build">
+    <zip basedir="." destfile="${build.dir}/${project.app}-${project.version}.xar" excludes="**/${build.dir}/**, .existdb.json, bower.json.ignores, .yo-rc.json, **/node_modules/**, **/reports/**, README.md, **/.git*/**"/>
+  </target>
+  <target name="all" depends="dev, deploy">
+    <tstamp/>
+  </target>
 </project>
