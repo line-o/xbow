@@ -3,7 +3,7 @@
   <description>Shoot arrow (expressions) fast and comfortably</description>
   <xmlproperty file="expath-pkg.xml"/>
   <property name="project.version" value="${package(version)}"/>
-  <property name="project.app" value="${package(name)}"/>
+  <property name="project.app" value="xbow"/>
   <property name="build.dir" value="build"/>
   <!-- Start it -->
   <target name="init" description="create build directory">
