@@ -13,12 +13,8 @@
   ],
   "devDependencies": {
     "chai": "^4.2.0",
-    "chai-xml": "^0.3.2",
-    "fs-extra": "^8.1.0",
     "mocha": "^6.2.2",
-    "supertest": "^4.0.2",
-    "xmldoc": "^1.1.2",
-    "yeoman-assert": "^3.1.1"
+    "superagent": "^5.1.0"
   },
   "author": {
     "name": "Juri Leino",
@@ -26,7 +22,7 @@
   },
   "license": "MIT",
   "scripts": {
-    "test": "mocha test/mocha/ --recursive --exit"
+    "test": "./node_modules/.bin/mocha test/mocha/*.js"
   },
   "repository": {
     "type": "git",

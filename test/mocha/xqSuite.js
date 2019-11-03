@@ -1,84 +1,93 @@
 'use strict'
 
+const fs = require('fs')
 const chai = require('chai')
-const supertest = require('supertest')
 const expect = require('chai').expect
+const s = require('superagent')
 
-// The client listening to the mock rest server
-var client = supertest.agent('http://localhost:8080')
+const testRunnerLocalPath = 'test/mocha/runner.xq'
 
-describe('xqSuite unit testing', function () {
-  describe('rest api returns', function () {
-    it('404 from random page', function (done) {
-      this.timeout(10000)
-      client
-        .get('/random')
-        .expect(404)
-        .end(function (err, res) {
-          expect(res.status).to.equal(404)
-          if (err) return done(err)
+const pkg = fs.readFileSync('package.json')
+const testCollection = '/test-' + pkg.name + '-' + pkg.version
+const testRunner = testCollection + '/runner.xq'
+
+const connectionOptions = {
+  protocol: 'http',
+  host: "localhost",
+  port: "8080",
+  path: "/exist/apps",
+  basic_auth: {
+    user: 'admin',
+    pass: ''
+  }
+}
+
+function connection (options) {
+  const protocol = options.protocol ? options.protocol : 'http'
+  const port = options.port ? ':' + options.port : ''
+  const path = options.path.startsWith('/') ? options.path : '/' + options.path
+  const prefix = `${protocol}://${options.host}${port}${path}`
+  return (request) => {
+    request.url = prefix + request.url
+    request.auth(options.basic_auth.user, options.basic_auth.pass)
+    return request
+  }
+}
+
+describe('xqSuite', function () {
+  let client, result
+
+  before(done => {
+    client = s.agent().use(connection(connectionOptions))
+    const buffer = fs.readFileSync(testRunnerLocalPath)
+    client
+        .put(testRunner)
+        .send(buffer)
+        .set('content-type', 'application/xquery')
+        .set('content-length', buffer.length)
+        .then(_ => {
+          return client.get(testRunner)
+            .query({lib: pkg.name, version: pkg.version})
+            .send()
+        })
+        .then(response => {
+          if (response.body.error) return Promise.reject(response.body.error)
+          result = response.body.result
           done()
         })
-    })
-
-    it('200 from default rest endpoint', function (done) {
-      client
-        .get('/exist/rest/db/')
-        .expect(200)
-        .end(function (err, res) {
-          expect(res.status).to.equal(200)
-          if (err) return done(err)
-          done()
+        .catch(e => {
+          console.error(e)
+          done(null, e)
         })
-    })
-
-    it('200 from startpage (index.html)', function (done) {
-      client
-        .get('/exist/rest/db/no/xbow/index.html')
-        .expect(200)
-        .end(function (err, res) {
-          expect(res.status).to.equal(200)
-          if (err) return done(err)
-          done()
-        })
-    })
   })
 
-  // TODO: add authentication
-  describe('running …', function () {
-    this.timeout(1500)
-    this.slow(500)
-
-    const runner = '/exist/rest/db/no/xbow/content/test-runner.xq'
-
-    it('returns 0 errors or failures', function (done) {
-      client
-        .get(runner)
-        .set('Accept', 'application/json')
-        .expect('content-type', 'application/json;charset=utf-8')
-        .end(function (err, res) {
-          try {
-            console.group()
-            console.group()
-            console.group()
-            console.info(res.body.testsuite.tests + ' xqsuite tests:')
-            if (err) return done(err)
-          } finally {
-            console.group()
-            res.body.testsuite.testcase.forEach(function (entry) {
-              if (entry.failure) console.error([entry.name, entry.failure.message])
-              else if (entry.error) console.error([entry.name, entry.error.message])
-              else (console.log(entry.name))
-            })
-            console.groupEnd()
-          }
-          console.groupEnd()
-          console.groupEnd()
-          console.groupEnd()
-          expect(res.body.testsuite.failures).to.equal('0')
-          expect(res.body.testsuite.errors).to.equal('0')
-          done()
-        })
-    })
+  it('should return 0 errors', done => {
+    expect(result.errors).to.equal(0)    
+    done()
   })
+
+  it('should return 0 failures', done => {
+    expect(result.failures).to.equal(0)
+    done()
+  })
+
+  it('should return 0 pending tests', done => {
+    expect(result.pending).to.equal(0)
+    done()
+  })
+
+  it('should have run 28 tests', done => {
+    expect(result.tests).to.equal(28)
+    done()
+  })
+
+  it('should have finished under half a second', done => {
+    expect(result.time).to.be.lessThan(0.5)
+    done()
+  })
+
+  after(done => {
+    client.delete(testCollection).send().then(_ => done(), done)
+  })
+
 })

@@ -1,7 +1,9 @@
 xquery version "3.1";
 
 module namespace xbow-spec="http://line-o.de/xbow/spec";
-import module namespace xbow="http://line-o.de/xbow";
+
+
+import module namespace xbow="http://line-o.de/xq/xbow";
 
 declare namespace test="http://exist-db.org/xquery/xqsuite";
 
@@ -44,6 +46,20 @@ declare variable $xbow-spec:map := map {
 };
 
 declare function xbow-spec:n-integer-accessor ($i) { xs:integer($i/@n) };
+
+(:~
+declare 
+    %test:assertTrue
+function xbow-spec:lt-returns-function () {
+    xbow:lt(8) instance function()
+};
+:)
+
+declare 
+    %test:assertTrue
+function xbow-spec:lt-returns-boolean () {
+    xbow:lt(8)(7)
+};
 
 declare 
     %test:assertEquals(6)
@@ -265,7 +281,7 @@ function xbow-spec:wrap-map-element () {
         'b': 2
     }
         => xbow:wrap-map-element()
-        => xboq:wrap-element('root')
+        => xbow:wrap-element('root')
 
 };
 
@@ -277,35 +293,37 @@ function xbow-spec:wrap-map-attribute () {
         'b': 2
     }
         => xbow:wrap-map-attribute()
-        => xboq:wrap-element('root')
+        => xbow:wrap-element('root')
 };
 
 declare
-    %test:assertEquals('a,b,h')
-function xbow-spec:filter-map-keys () {
+    %test:assertEquals('a','b','h')
+function xbow-spec:map-filter-keys () {
     $xbow-spec:map
-        => xbow:filter-map-keys(('a', 'b', 'h'))
+        => xbow:map-filter-keys(('a', 'b', 'h'))
         => map:keys()
 };
 
 declare
-    %test:assertEquals('1,10,11,-1,0,16,8,31,9')
+    %test:assertEquals('-1', '0', '1', '8', '9', '10', '11', '16', '31')
 function xbow-spec:map-reverse () {
     $xbow-spec:map
         => xbow:map-reverse()
         => map:keys()
+        => xbow:descending()
 };
 
 declare
-    %test:assertEquals('0,9,11,-2,-1,15,7,30,8')
+    %test:assertEquals('-2', '-1', '0', '7', '8', '9', '10', '15', '30')
 function xbow-spec:map-reverse-function-add () {
     $xbow-spec:map
         => xbow:map-reverse(function ($k) {xs:int($k) - 1})
         => map:keys()
+        => xbow:descending()
 };
 
 declare
-    %test:assertEquals('xxxxxx-xxxx-xxxx-xxxxxxxxxxxxx')
+    %test:assertEquals('1f61f08a-04d5-3a9b-a749-7fad4d9b612c')
 function xbow-spec:map-reverse-function-uuid () {
     map { 'key': 'value' }
         => xbow:map-reverse(util:uuid(?))

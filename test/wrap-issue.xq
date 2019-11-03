@@ -1,8 +1,5 @@
 xquery version "3.1";
 
-import module namespace xbow="http://line-o.de/xbow" at '/db/apps/xbow/xbow.xqm';
-import module namespace functx="http://www.functx.com";
-
 declare function local:wrapByLiteral ($i) as element(a) {
     <a b="{ $i }"/>
 };

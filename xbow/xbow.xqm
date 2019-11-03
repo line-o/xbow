@@ -1,7 +1,11 @@
 xquery version "3.1";
+(:~ 
+ : 
+ : @author Juri Leino
+~:)
 
-module namespace xbow="http://line-o.de/xbow";
-import module namespace functx = "http://www.functx.com";
+module namespace xbow="http://line-o.de/xq/xbow";
+
 
 (:~
  : get the first $n items from sequence $s
@@ -39,12 +43,12 @@ function xbow:sortBy ($s as item()*, $f as function(*)) as item()* {
 
 declare
 function xbow:ascending ($s as item()*) as item()* {
-   xbow:sortBy($s, function ($a as xs:integer) { -$a })
+   xbow:sortBy($s, function ($a as item()) { xs:integer(-$a) })
 };
 
 declare
 function xbow:descending ($s as item()*) as item()* {
-   xbow:sortBy($s, function ($a as xs:integer) { $a })
+   xbow:sortBy($s, function ($a as item()) { xs:integer($a) })
 };
 
 (: group by :)
@@ -149,13 +153,13 @@ function xbow:ne ($comparison as item()) as function(*) {
 };
 
 declare
-function xbow:eq ($comparison as item(), $accessor as function(*)) as function(*) {
-    function ($i as item()) as xs:boolean { $accessor($i) eq $comparison }
+function xbow:eq ($comparison as item()) as function(*) {
+    function ($i as item()) as xs:boolean { $i eq $comparison }
 };
 
 declare
-function xbow:eq ($comparison as item()) as function(*) {
-    function ($i as item()) as xs:boolean { $i eq $comparison }
+function xbow:eq ($comparison as item(), $accessor as function(*)) as function(*) {
+    function ($i as item()) as xs:boolean { $accessor($i) eq $comparison }
 };
 
 declare
@@ -206,8 +210,8 @@ function xbow:le ($comparison as item()) as function(*) {
  : <$node-name>$item(s)</$node-name>
 ~:)
 declare
-function xbow:wrap-element ($name) {
-    function ($value) { element { $name } { $value } }
+function xbow:wrap-element ($value, $name) {
+    element { $name } { $value }
 };
 
 (:~
@@ -237,7 +241,7 @@ function xbow:wrap-attribute ($value as item()*, $attribute-name as xs:string) {
 ~:)
 declare
 function xbow:wrap-each ($values, $node-name as xs:string) {
-    for-each($values, xbow:wrap-element($node-name))
+    for-each($values, xbow:wrap-element(?, $node-name))
 };
 
 declare
@@ -251,13 +255,12 @@ function xbow:wrap-map-element ($map as map(*)) {
 };
 
 declare
-function xbow:map-filter-keys ($keys as xs:string*) {
-    function ($map as map(*)) {
-        for-each ($keys, function ($key) {
-            map:entry($key, $map($key))
-        })
+function xbow:map-filter-keys ($map as map(), $keys as xs:string*) {
+    let $f := function ($key) { map:entry($key, $map($key)) }
+    
+    return
+        for-each ($keys, $f)
         => map:merge()
-    }
 };
 
 (:~
@@ -285,7 +288,7 @@ function xbow:map-reverse ($map as map()) {
     local:map-reverse(map { 'key': 'value'}, function ($v) { util:uuid($v) })
  ~:)
 declare
-function xbow:map-reverse ($map as map(), $hash-value as function()) {
+function xbow:map-reverse ($map as map(*), $hash-value as function(*)) {
     map:for-each($map,
         function ($k, $v) {
             map { $hash-value($v): $k }
