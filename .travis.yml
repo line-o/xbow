@@ -41,7 +41,7 @@ before_script:
   - docker cp ./build/*.xar exist-ci:exist/autodeploy
   - docker start exist-ci
   # exist needs time
-  - sleep 30
+  - sleep 60
   - docker ps
 
 script:

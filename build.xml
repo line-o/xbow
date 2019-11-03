@@ -3,7 +3,7 @@
   <description>Shoot arrow (expressions) fast and comfortably</description>
   <xmlproperty file="expath-pkg.xml"/>
   <property name="project.version" value="${package(version)}"/>
-  <property name="project.app" value="xbow"/>
+  <property name="project.app" value="${package(name)}"/>
   <property name="build.dir" value="build"/>
   <!-- Start it -->
   <target name="init" description="create build directory">
@@ -12,7 +12,7 @@
   </target>
   <!-- Release build -->
   <target name="deploy" depends="init" description="compile release build">
-    <zip basedir="." destfile="${build.dir}/${project.app}-${project.version}.xar" excludes="**/${build.dir}/**, .existdb.json, bower.json.ignores, .yo-rc.json, **/node_modules/**, **/reports/**, README.md, **/.git*/**"/>
+    <zip basedir="." destfile="${build.dir}/${project.app}-${project.version}.xar" excludes="**/${build.dir}/**, .existdb.json, .yo-rc.json, **/node_modules/**, **/reports/**, README.md, **/.git*/**"/>
   </target>
   <target name="all" depends="deploy">
     <tstamp/>
