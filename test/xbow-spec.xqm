@@ -305,12 +305,26 @@ function xbow-spec:map-filter-keys () {
 };
 
 declare
+    %test:assertEquals('10000', '5', '3', '1', '0', '-1')
+function xbow-spec:descending () {
+    (10000, -1, 5, 0, 1, 3)
+        => xbow:descending()
+};
+
+declare
+    %test:assertEquals('-1', '0', '1', '3', '5', '10000')
+function xbow-spec:ascending () {
+    (10000, -1, 5, 0, 1, 3)
+        => xbow:ascending()
+};
+
+declare
     %test:assertEquals('-1', '0', '1', '8', '9', '10', '11', '16', '31')
 function xbow-spec:map-reverse () {
     $xbow-spec:map
         => xbow:map-reverse()
         => map:keys()
-        => xbow:descending()
+        => xbow:ascending()
 };
 
 declare
@@ -319,7 +333,7 @@ function xbow-spec:map-reverse-function-add () {
     $xbow-spec:map
         => xbow:map-reverse(function ($k) {xs:int($k) - 1})
         => map:keys()
-        => xbow:descending()
+        => xbow:ascending()
 };
 
 declare

@@ -43,12 +43,12 @@ function xbow:sortBy ($s as item()*, $f as function(*)) as item()* {
 
 declare
 function xbow:ascending ($s as item()*) as item()* {
-   xbow:sortBy($s, function ($a as item()) { xs:integer(-$a) })
+   xbow:sortBy($s, function ($a as item()) { xs:integer($a) })
 };
 
 declare
 function xbow:descending ($s as item()*) as item()* {
-   xbow:sortBy($s, function ($a as item()) { xs:integer($a) })
+   xbow:sortBy($s, function ($a as item()) { xs:integer(-$a) })
 };
 
 (: group by :)
