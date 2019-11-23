@@ -143,13 +143,13 @@ function xbow:to-sequence ($array as array(*)) as item()* {
 (: comparison helper functions :)
 
 declare
-function xbow:ne ($comparison as item(), $accessor as function(*)) as function(*) {
-    function ($i as item()) as xs:boolean { $accessor($i) ne $comparison }
+function xbow:ne ($comparison as item()) as function(*) {
+    function ($i as item()) as xs:boolean { $i ne $comparison }
 };
 
 declare
-function xbow:ne ($comparison as item()) as function(*) {
-    function ($i as item()) as xs:boolean { $i ne $comparison }
+function xbow:ne ($comparison as item(), $accessor as function(*)) as function(*) {
+    function ($i as item()) as xs:boolean { $accessor($i) ne $comparison }
 };
 
 declare
@@ -208,7 +208,7 @@ function xbow:le ($comparison as item()) as function(*) {
  : wrap item(s) in node with name $node-name
  : returns function that returns an element()
  : <$node-name>$item(s)</$node-name>
-~:)
+ :)
 declare
 function xbow:wrap-element ($value, $name) {
     element { $name } { $value }
@@ -218,7 +218,7 @@ function xbow:wrap-element ($value, $name) {
  : wrap item(s) in attribute with name $attribute-name
  : returns function that returns an attribute()
  : multiple items will be joined into a single string separated by $joiner
-~:)
+ :)
 declare
 function xbow:wrap-attribute ($value as item()*, $attribute-name as xs:string, $joiner as xs:string) {
     attribute { $attribute-name } { string-join($value, $joiner) }
@@ -238,7 +238,7 @@ function xbow:wrap-attribute ($value as item()*, $attribute-name as xs:string) {
    <$node-name>$item[1]</$node-name>,
    <$node-name>$item[1]</$node-name>
 )
-~:)
+ :)
 declare
 function xbow:wrap-each ($values, $node-name as xs:string) {
     for-each($values, xbow:wrap-element(?, $node-name))
@@ -267,7 +267,7 @@ function xbow:map-filter-keys ($map as map(), $keys as xs:string*) {
  : reverse keys and values of a map 
  : Example:
     local:map-reverse(map { 'key': 'value'})
-~:)
+ :)
 declare
 function xbow:map-reverse ($map as map()) {
     map:for-each($map, function ($k, $v) { map { $v: $k } })
@@ -279,14 +279,14 @@ function xbow:map-reverse ($map as map()) {
  : because `local:map-reverse(map { 'key': (1 to 10)})` would throw
 
  : Example:
-    local:map-reverse(map { 'key': (1 to 10)}, function ($v) { sum($v) })
+    local:map-reverse(map { 'key': (1 to 10)}, sum#1)
 
  : reverse map but do something with the value too
 
  : Example:
     local:map-reverse(map { 'key': 'value'}, function ($v) { upper-case($v) }),
     local:map-reverse(map { 'key': 'value'}, function ($v) { util:uuid($v) })
- ~:)
+ :)
 declare
 function xbow:map-reverse ($map as map(*), $hash-value as function(*)) {
     map:for-each($map,
