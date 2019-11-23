@@ -1,6 +1,6 @@
 {
   "name": "xbow",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Shoot arrow (expressions) fast and comfortably",
   "homepage": "https://github.com/line-o/xbow#readme",
   "bugs": "https://github.com/line-o/xbow/issues",
@@ -22,7 +22,7 @@
   },
   "license": "MIT",
   "scripts": {
-    "test": "./node_modules/.bin/mocha test/mocha/*.js"
+    "test": "node_modules/.bin/mocha test/mocha/*.js"
   },
   "repository": {
     "type": "git",
