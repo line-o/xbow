@@ -76,6 +76,7 @@ coverage
 build/
 bower_components/
 .idea
+.vscode
 reports/
 
 # =========================
