@@ -6,15 +6,16 @@
   <property name="project.app" value="xbow"/>
   <property name="build.dir" value="build"/>
   <!-- Start it -->
-  <target name="init" description="create build directory">
-    <tstamp/>
+  <target name="clean" description="create build directory">
+    <delete dir="${build.dir}"/>
     <mkdir dir="${build.dir}"/>
   </target>
   <!-- Release build -->
-  <target name="deploy" depends="init" description="compile release build">
-    <zip basedir="." destfile="${build.dir}/${project.app}-${project.version}.xar" excludes="**/${build.dir}/**, .existdb.json, .yo-rc.json, **/node_modules/**, **/reports/**, README.md, **/.git*/**"/>
+  <target name="build" depends="clean" description="compile release build">
+    <zip basedir="." 
+      destfile="${build.dir}/${project.app}-${project.version}.xar"
+      excludes="${build.dir}/** examples/** build*.xml node_modules/** reports/** .*/** *.tmpl *.json test/mocha/*"/>
   </target>
-  <target name="all" depends="deploy">
-    <tstamp/>
+  <target name="all" depends="build">
   </target>
 </project>
