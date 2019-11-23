@@ -121,10 +121,45 @@ function xbow-spec:array-filter-le-accessor () {
 };
 
 declare 
+    %test:assertEquals('b')
+function xbow-spec:pluck-map () {
+    map { 'a': 'b'} => xbow:pluck('a')
+};
+
+declare 
+    %test:pending
+function xbow-spec:pluck-map-non-existent () {
+    map { 'a': 'b'} => xbow:pluck('c')
+};
+
+declare 
+    %test:assertEquals(2)
+function xbow-spec:pluck-array () {
+    [1, 2] => xbow:pluck(2)
+};
+
+declare 
+    %test:pending
+function xbow-spec:pluck-array () {
+    [1, 2] => xbow:pluck(3)
+};
+
+declare 
+    %test:assertEquals('a')
+function xbow-spec:filter-with-pluck () {
+    (
+        map { 'a': 6 },
+        map { 'a': 16 }
+    )
+        => filter(xbow:lt(8, xbow:pluck('a')))
+        => map:keys()
+};
+
+declare 
     %test:assertEquals(85)
 function xbow-spec:nested-array-pluck () {
     $xbow-spec:nested-array
-        => array:for-each(xbow:pluck(?,'n'))
+        => array:for-each(xbow:pluck('n'))
         => array:for-each(xs:integer(?))
         => xbow:to-sequence()
         => sum() 

@@ -79,8 +79,18 @@ function xbow:even-odd ($item as xs:numeric) as xs:string {
 (: accessor helper :)
 
 declare
+function xbow:pluck ($field as xs:string) as item()* {
+    xbow:pluck(?, $field)
+};
+
+declare
 function xbow:pluck ($map as map(*), $field as xs:string) as item()* {
     $map($field)
+};
+
+declare
+function xbow:pluck-deep ($fields as xs:string*) as item()* {
+    xbow:pluck-deep(?, $fields)
 };
 
 declare
