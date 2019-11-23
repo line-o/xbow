@@ -1,7 +1,6 @@
 'use strict'
 
 const fs = require('fs')
-const chai = require('chai')
 const expect = require('chai').expect
 const s = require('superagent')
 
@@ -42,9 +41,9 @@ describe('xqSuite', function () {
     const buffer = fs.readFileSync(testRunnerLocalPath)
     client
         .put(testRunner)
-        .send(buffer)
         .set('content-type', 'application/xquery')
         .set('content-length', buffer.length)
+        .send(buffer)
         .then(_ => {
           return client.get(testRunner)
             .query({lib: pkg.name, version: pkg.version})
@@ -55,10 +54,7 @@ describe('xqSuite', function () {
           result = response.body.result
           done()
         })
-        .catch(e => {
-          console.error(e)
-          done(null, e)
-        })
+        .catch(done)
   })
 
   it('should return 0 errors', done => {
@@ -76,18 +72,20 @@ describe('xqSuite', function () {
     done()
   })
 
-  it('should have run 28 tests', done => {
-    expect(result.tests).to.equal(28)
+  it('should have run some tests', done => {
+    expect(result.tests).to.be.greaterThan(0)
     done()
   })
 
-  it('should have finished under half a second', done => {
+  it('should have finished in less than half a second', done => {
     expect(result.time).to.be.lessThan(0.5)
     done()
   })
 
   after(done => {
-    client.delete(testCollection).send().then(_ => done(), done)
+    client.delete(testCollection)
+      .send()
+      .then(_ => done(), done)
   })
 
 })
