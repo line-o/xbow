@@ -6,7 +6,7 @@ const s = require('superagent')
 
 const testRunnerLocalPath = 'test/mocha/runner.xq'
 
-const pkg = fs.readFileSync('package.json')
+const pkg = JSON.parse(fs.readFileSync('package.json'))
 const testCollection = '/test-' + pkg.name + '-' + pkg.version
 const testRunner = testCollection + '/runner.xq'
 
@@ -50,7 +50,10 @@ describe('xqSuite', function () {
             .send()
         })
         .then(response => {
-          if (response.body.error) return Promise.reject(response.body.error)
+          if (response.body.error) {
+            return Promise.reject(
+              Error(response.body.error.description))
+          }
           result = response.body.result
           done()
         })
