@@ -73,7 +73,60 @@ function xbow:groupBy ($s as item()*, $key-function as function(*), $accessor as
 
 declare
 function xbow:even-odd ($item as xs:numeric) as xs:string {
-  if ($item mod 2) then ('odd') else ('even')
+    if ($item mod 2) then ('odd') else ('even')
+};
+
+(: sequence tests :)
+
+(:~ 
+ : Returns true if all items in the given $sequence
+ : return true for the $comparison-function
+ :
+ : Example
+ :   <code>xbow:all((1,2,3), function ($i) { $i < 5 })</code>
+ :
+ : Returns
+ :   <code>true()</code>
+ :)
+declare
+function xbow:all ($sequence as item()*, $comparison-function as function(*)) as xs:boolean {
+    fold-left($sequence, true(), function ($result as xs:boolean, $next as item()) as xs:boolean {
+        $result and $comparison-function($next)
+    })
+};
+
+(:~ 
+ : Returns true if none of the items in the given $sequence
+ : return true for the $comparison-function
+ :
+ : Example
+ :   <code>xbow:none((1,2,3), function ($i) { $i > 5 })</code>
+ :
+ : Returns
+ :   <code>true()</code>
+ :)
+declare
+function xbow:none ($sequence as item()*, $comparison-function as function(*)) as xs:boolean {
+    fold-left($sequence, true(), function ($result as xs:boolean, $next as item()) as xs:boolean {
+        $result and not($comparison-function($next))
+    })
+};
+
+(:~ 
+ : Returns true if at least one of the items in the given $sequence
+ : return true for the $comparison-function
+ :
+ : Example
+ :   <code>xbow:some((1,2,3), function ($i) { $i = 2 })</code>
+ :
+ : Returns
+ :   <code>true()</code>
+ :)
+declare
+function xbow:some ($sequence as item()*, $comparison-function as function(*)) as xs:boolean {
+    fold-left($sequence, false(), function ($result as xs:boolean, $next as item()) as xs:boolean {
+        $result or $comparison-function($next)
+    })
 };
 
 (: accessor helper :)
@@ -97,7 +150,6 @@ declare
 function xbow:pluck-deep ($map as map(*), $fields as xs:string*) as item()* {
     fold-left($fields, $map, xbow:pluck#2)
 };
-
 
 (: stats :)
 
@@ -276,7 +328,7 @@ function xbow:map-filter-keys ($map as map(), $keys as xs:string*) {
 (:~
  : reverse keys and values of a map 
  : Example:
-    local:map-reverse(map { 'key': 'value'})
+    xbow:map-reverse(map { 'key': 'value'})
  :)
 declare
 function xbow:map-reverse ($map as map()) {
@@ -286,16 +338,16 @@ function xbow:map-reverse ($map as map()) {
 
 (:~ 
  : reverse map with non-atomic values
- : because `local:map-reverse(map { 'key': (1 to 10)})` would throw
+ : because `xbow:map-reverse(map { 'key': (1 to 10)})` would throw
 
  : Example:
-    local:map-reverse(map { 'key': (1 to 10)}, sum#1)
+    xbow:map-reverse(map { 'key': (1 to 10)}, sum#1)
 
  : reverse map but do something with the value too
 
  : Example:
-    local:map-reverse(map { 'key': 'value'}, function ($v) { upper-case($v) }),
-    local:map-reverse(map { 'key': 'value'}, function ($v) { util:uuid($v) })
+    xbow:map-reverse(map { 'key': 'value'}, function ($v) { upper-case($v) }),
+    xbow:map-reverse(map { 'key': 'value'}, function ($v) { util:uuid($v) })
  :)
 declare
 function xbow:map-reverse ($map as map(*), $hash-value as function(*)) {
@@ -313,4 +365,218 @@ function xbow:get-type ($item as item()) {
         case attribute() return local-name($item)
         case xs:anyAtomicType return 'xs:anyAtomicType'
         default return 'other'
+};
+
+(:~
+ : combine a sequence of $functions and returns the combined function
+ :)
+declare
+function xbow:combine ($functions as function(*)*) as function(*) {
+    function ($initial as item()*) {
+        fold-left($functions, $initial, xbow:combination-reducer#2)
+    }
+};
+
+declare
+    %private
+function xbow:combination-reducer ($result as item()*, $next as function(*)) as item()* {
+    apply($next,
+        xbow:spread($result, function-arity($next)))
+};
+
+declare
+    %private
+function xbow:spread ($arguments as item()*, $arity as xs:integer) as array(*) {
+    if (count($arguments) < $arity)
+    then error(
+        xs:QName('xbow:not-enough-arguments'), 
+        ``[Received `{count($arguments)}` argument(s) for a function with arity `{$arity}`]``)
+    else if ($arity = 1)
+    then [$arguments]
+    else array:join((
+        [head($arguments)],
+        xbow:spread(tail($arguments), $arity - 1)
+    ))
+};
+
+(:~
+ : categorize all elements of $sequence by first matching rule in $rules
+ :)
+declare
+function xbow:categorize ($sequence as item()*, $rules as array(function(*))) as function(*) {
+    let $test := xbow:find-first-matching($rules, ?)
+    let $zero := xbow:array-fill(array:size($rules), ())
+
+    return fold-left($sequence, $zero, function ($result as array(*), $item as item()) {
+        let $pos := $test($item)
+
+        return
+            if ($pos eq 0)
+            then ($result) (: $item did not match any criteria :)
+            else (xbow:array-put($result, $pos, ($result($pos), $item)))
+    })
+};
+
+(:~
+ : spread all elements of $sequence over $scale using an $accessor function
+ :)
+declare
+function xbow:categorize ($sequence as item()*, $rules as array(function(*)), $accessor as function(*)) as function(*) {
+    let $test := xbow:find-first-matching($rules, ?)
+    let $zero := xbow:array-fill(array:size($rules), ())
+
+    return fold-left($sequence, $zero, function ($result as array(*), $item as item()) {
+        let $pos := $test($accessor($item))
+
+        return
+            if ($pos eq 0)
+            then ($result) (: $item did not match any criteria :)
+            else (xbow:array-put($result, $pos, ($result($pos), $item)))
+    })
+};
+
+
+(:~
+ : xquery implemention of a special array:put in xquery
+ : fills elements of sparse arrays with empty sequences
+ :)
+declare
+function xbow:array-put ($array as array(*), $pos as xs:integer, $items-to-put as item()*) as array(*) {
+    array:join((
+        if (array:size($array) < $pos)
+        then (
+            $array,
+            xbow:array-fill($pos - array:size($array) -1, ()),
+            [$items-to-put]
+        )
+        else if (array:size($array) > $pos + 1)
+        then (
+            array:subarray($array, 1, $pos -1),
+            [$items-to-put],
+            array:subarray($array, $pos + 1)
+        )
+        else (
+            array:subarray($array, 1, $pos -1),
+            [$items-to-put],
+            array:subarray($array, $pos + 1)
+        )
+    ))
+};
+
+(:~
+ : Extended for-each, will pass the position of the current item
+ : to the provided function.
+ : Functional equivalent of `for $item at $pos in $seq`.
+
+ Example:
+    xbow:sequence-for-each-index((1,2,3), function ($i, $p) { $i + $p })
+ :)
+declare
+function xbow:sequence-for-each-index ($seq as item()*, $func as function (*)) as item()* {
+    fold-left($seq, [0, ()], function ($result as array(*), $next as item()) {
+        let $pos := $result?1 + 1
+        return [$pos, ($result?2, $func($next, $pos))]
+    })?2
+};
+
+(:~
+ : Extended array:for-each, will pass the position of the current item
+ : to the provided function.
+
+ Example:
+    xbow:array-for-each-index([1,2,3], function ($i, $p) { $i + $p })
+ :)
+declare
+function xbow:array-for-each-index ($arr as array(*), $func as function(*)) as array(*) {
+    array:fold-left($arr, [0, []], function ($result as array(*), $next as item()*) {
+        let $next-pos := $result?1 + 1
+        return [$next-pos, array:append($result?2, $func($next, $next-pos))]
+    })?2
+};
+
+(:~
+ : Universal, extended for-each, will pass the position of the current item
+ : to the provided function and can work with sequences and arrays.
+
+ Example:
+    xbow:for-each-index((1,2,3), function ($i, $p) { $i + $p })
+    xbow:for-each-index([1,2,3], function ($i, $p) { $i + $p })
+ :)
+declare
+function xbow:for-each-index ($array-or-items as item()*, $func as function(*)) as item()* {
+    typeswitch ($array-or-items)
+    case array(*)
+        return xbow:array-for-each-index($array-or-items, $func)
+    default
+        return xbow:sequence-for-each-index($array-or-items, $func)
+};
+
+(:~
+ : returns an array of size $size
+ : the items can be set to (), a single value or be returned by a 
+ : function provided as the second value
+
+ Examples:
+   xbow:array-fill(4, ()),
+   xbow:array-fill(4, function ($i, $p) { $i + $p })
+ :)
+declare
+function xbow:array-fill ($size as xs:positiveInteger, $function-or-value as item()?) as array(*) {
+    typeswitch ($function-or-value)
+    case function(*) 
+        return xbow:array-for-each-index(
+            array { (1 to $size) }, $function-or-value)
+    default 
+        return array:for-each(
+            array { (1 to $size) }, function ($ignore) { $function-or-value })
+};
+
+declare
+    %private
+function xbow:match-first ($item, $result, $match) {
+    let $current-pos := head($result) + 1
+    let $current-match := tail($result)
+
+    return
+        if ($current-match > 0)
+        then $result (: did match, do nothing :)
+        else if ($match($item))
+        then ($current-pos, $current-pos)
+        else ($current-pos, $current-match)
+};
+
+declare
+    %private
+function xbow:match-all ($item, $result, $match) {
+    let $current-pos := head($result) + 1
+    let $current-match := tail($result)
+
+    return
+        if ($match($item))
+        then ($current-pos, $current-pos)
+        else ($current-pos, $current-match)
+};
+
+declare
+    %private
+function xbow:find-first-matching ($rules as array(*), $item as item()) as xs:integer {
+    array:fold-left($rules, (0, 0), xbow:match-first($item, ?, ?))
+        => tail()
+};
+
+(:~
+ : transform an $array of items into an array of maps
+ : with two keys each:
+ : 'items' (n-th item of the first array) and
+ : 'label' (n-th item of the second array)
+ : NOTE: both arrays must be of same length
+ :)
+declare
+function xbow:label($array as array(*), $labels as array(*)) as array(map(*)) {
+    array:for-each-pair($array, $labels, function ($items, $label) {
+        map {
+            'items': $items,
+            'label': $label
+        }
+    })
 };
