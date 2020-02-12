@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<meta 
-  xmlns="http://exist-db.org/xquery/repo">
-  <description>Shoot arrow (expressions) fast and comfortably</description>
+<meta xmlns="http://exist-db.org/xquery/repo">
+  <description>Shoot arrow expressions fast and comfortably</description>
   <author>Juri Leino</author>
   <website>http://line-o.de/xq/xbow</website>
   <status>alpha</status>
