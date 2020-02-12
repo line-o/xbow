@@ -45,7 +45,26 @@ declare variable $xbow-spec:map := map {
     'i': '9'
 };
 
-declare function xbow-spec:n-integer-accessor ($i) { xs:integer($i/@n) };
+declare variable $xbow-spec:user-xml :=
+<root>
+    <user first="Susan" last="Young" age="8"/>
+    <user first="Ike" last="Hurst" age="31"/>
+    <user first="Marla" last="Hill" age="50"/>
+    <user first="Paula" last="Meyer" age="41"/>
+    <user first="Fela" last="Kuti" age="72"/>
+    <user first="Mike" last="Heiner" age="123"/>
+    <user first="Carla" last="Hill" age="53"/>
+    <user first="Chris" last="Christie" age="15"/>
+    <user first="Paula" last="Meyer" age="41"/>
+    <user first="Fela" last="Mack" age="34"/>
+</root>
+;
+
+declare
+function xbow-spec:n-integer-accessor ($i as element()) as xs:integer { xs:integer($i/@n) };
+
+declare
+function xbow-spec:age-accessor ($i as element()) as xs:integer { xs:integer($i/@age) };
 
 (:~
 declare 
@@ -385,4 +404,160 @@ function xbow-spec:map-reverse-function-sum () {
     map { 'key': (1 to 10) }
         => xbow:map-reverse(sum(?))
         => map:keys()
+};
+
+declare
+    %test:assertTrue
+function xbow-spec:all-true () {
+    $xbow-spec:user-xml/user
+        => xbow:all(xbow:ne(0, xbow-spec:age-accessor#1))
+};
+
+declare
+    %test:assertTrue
+function xbow-spec:all-empty () {
+    () => xbow:all(xbow:eq(1, xbow-spec:age-accessor#1))
+};
+
+declare
+    %test:assertFalse
+function xbow-spec:all-false () {
+    $xbow-spec:user-xml/user
+        => xbow:all(xbow:lt(100, xbow-spec:age-accessor#1))
+};
+
+declare
+    %test:assertFalse
+function xbow-spec:all-false2 () {
+    $xbow-spec:user-xml/user
+        => xbow:all(xbow:eq(2, xbow-spec:age-accessor#1))
+};
+
+declare
+    %test:assertTrue
+function xbow-spec:none-true () {
+    $xbow-spec:user-xml/user
+        => xbow:none(xbow:eq(0, xbow-spec:age-accessor#1))
+};
+
+declare
+    %test:assertFalse
+function xbow-spec:none-false () {
+    $xbow-spec:user-xml/user
+        => xbow:none(xbow:gt(100, xbow-spec:age-accessor#1))
+};
+
+declare
+    %test:assertTrue
+function xbow-spec:none-empty () {
+    () => xbow:none(xbow:eq(-1, xbow-spec:age-accessor#1))
+};
+
+declare
+    %test:assertFalse
+function xbow-spec:none-false2 () {
+    $xbow-spec:user-xml/user
+        => xbow:none(xbow:ge(100, xbow-spec:age-accessor#1))
+};
+
+declare
+    %test:assertTrue
+function xbow-spec:some-true () {
+    $xbow-spec:user-xml/user
+        => xbow:some(xbow:eq(41, xbow-spec:age-accessor#1))
+};
+
+declare
+    %test:assertFalse
+function xbow-spec:some-empty () {
+    () => xbow:some(xbow:eq(-1, xbow-spec:age-accessor#1))
+};
+
+declare
+    %test:assertFalse
+function xbow-spec:some-false () {
+    $xbow-spec:user-xml/user
+        => xbow:some(xbow:eq(-1, xbow-spec:age-accessor#1))
+};
+
+declare
+    %test:assertFalse
+function xbow-spec:some-false2 () {
+    $xbow-spec:user-xml/user
+        => xbow:some(xbow:eq(1000, xbow-spec:age-accessor#1))
+};
+
+declare
+    %test:assertEquals(2)
+function xbow-spec:categorize-numbers () {
+    (-10 to 10)
+        => xbow:categorize([ xbow:lt(0), xbow:ge(0) ])
+        => array:size()
+};
+
+declare
+    %test:assertEquals(0)
+function xbow-spec:categorize-none-match () {
+    (0 to 10)
+        => xbow:categorize([ xbow:lt(0), xbow:gt(10) ])
+        => (function ($arr) { (count($arr?1), count($arr?2)) => sum() })()
+};
+
+declare
+    %test:assertEquals(2)
+function xbow-spec:categorize-number-of-categories () {
+    $xbow-spec:user-xml/user
+        => xbow:categorize(
+            [ xbow:lt(21), xbow:ge(21) ],
+            xbow-spec:age-accessor#1
+        )
+        => array:size()
+};
+
+declare
+    %test:assertEquals("2", "8")
+function xbow-spec:categorize-number-of-items () {
+    $xbow-spec:user-xml/user
+        => xbow:categorize(
+            [ xbow:lt(21), xbow:ge(21) ],
+            xbow-spec:age-accessor#1
+        )
+        => array:for-each(function ($items) { count($items) })
+        => xbow:to-sequence()
+};
+
+declare
+    %test:assertEquals("<user first=&quot;Susan&quot; last=&quot;Young&quot; age=&quot;8&quot;/>","<user first=&quot;Chris&quot; last=&quot;Christie&quot; age=&quot;15&quot;/>")
+function xbow-spec:categorize-number-of-items () {
+    $xbow-spec:user-xml/user
+        => xbow:categorize(
+            [ xbow:lt(21), xbow:ge(21) ],
+            xbow-spec:age-accessor#1
+        )
+        => (function ($arr) { $arr?1 })()
+};
+
+declare
+    %test:assertEquals("underage", "2")
+function xbow-spec:label-categorized-items () {
+    $xbow-spec:user-xml/user
+        => xbow:categorize(
+            [ xbow:lt(21), xbow:ge(21) ],
+            xbow-spec:age-accessor#1
+        )
+        => xbow:label(['underage', 'adult'])
+        => (function ($arr) { $arr?1?label, count($arr?1?items) })()
+};
+
+declare
+    %test:assertTrue
+function xbow-spec:combine-for-each () {
+    let $fna := string#1
+    let $fnb := concat('-', ?, '-')
+    let $d := (1.1, "a", xs:date('1970-01-01'))
+
+    let $r1 := $d => for-each(xbow:combine(($fna, $fnb)))
+    let $r2 := $d => for-each($fna) => for-each($fnb)
+
+    return $r1 = $r2
 };
