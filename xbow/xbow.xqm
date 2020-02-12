@@ -363,6 +363,8 @@ function xbow:get-type ($item as item()) {
     typeswitch($item)
         case element() return node-name($item)
         case attribute() return local-name($item)
+        case array(*) return 'array'
+        case map(*) return 'map'
         case xs:anyAtomicType return 'xs:anyAtomicType'
         default return 'other'
 };
