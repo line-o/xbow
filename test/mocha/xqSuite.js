@@ -80,8 +80,8 @@ describe('xqSuite', function () {
     done()
   })
 
-  it('should have finished in less than half a second', done => {
-    expect(result.time).to.be.lessThan(0.5)
+  it('should have finished in less than a second', done => {
+    expect(result.time).to.be.lessThan(1)
     done()
   })
 
