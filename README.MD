@@ -46,7 +46,7 @@ All `item()*` welcome.
 In the section [Grouping](#Grouping) is a code example.
 
 There are two functions, `xbow:pluck` and `xbow:pluck-deep`, that can help making use of accessors.
-The second example in (Filtering)[#Filtering] uses pluck.
+The second example in [Filtering](#Filtering) uses pluck.
 
 ## Filtering
 
