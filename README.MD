@@ -4,7 +4,7 @@
 
 [![Build Status](https://travis-ci.com/line-o/xbow.svg)](https://travis-ci.com/line-o/xbow)
 
-Xquery helper function library to be used with the arrow operator.
+XQuery helper function library to be used with the arrow operator.
 Should be read as **crossbow**, a tool to shoot arrows fast and accurately.
 
 ## Usage
@@ -26,8 +26,8 @@ all of it can be used without this language feature, as well.
 
 ## Requirements
 
-- xquery version 3.1+
-- existdb version 4.7.0+
+- XQuery version 3.1+
+- eXist-db version 4.7.0+
 
 ## Accessors
 
@@ -202,28 +202,27 @@ all **throw**!
 
 ## Roadmap / TODOs
 
-- [x] Add convenience functions for boolean tests on sequence items
-    (`all`, `none`, `some`) 
-- [] Rename xbow:map-reverse (to xbow:map-flip for example)
-- [] Change namespace to `xb` for brevity
-- [] Test/support elements with namespaces in `wrap*`
+- [x] Add convenience functions for boolean tests on sequence items (`all`, `none`, `some`) 
+- [ ] Rename xbow:map-reverse (to xbow:map-flip for example)
+- [ ] Change namespace to `xb` for brevity
+- [ ] Test/support elements with namespaces in `wrap*`
 
-- [] More examples
-- [] Extend documentation on concepts
-- [] Generate xqdoc Documentation at build
+- [ ] More examples
+- [ ] Extend documentation on concepts
+- [ ] Generate XQDoc documentation at build
 
-- [] Replace `ant` with `gulp-exist` +watcher 
-- [] Create packages for other XQuery runtimes
+- [ ] Replace `ant` with `gulp-exist` +watcher 
+- [ ] Create packages for other XQuery runtimes
 
 ## Known Issues
 
-The xBow module is only tested on and distributed for [eXist-db](https://eXist-db.org) at the moment. In theory the core library module should run 
-anywhere. It depends on functions only available in xquery version 3.1 (or higher).
+The xBow module is only tested on and distributed for [eXist-db](https://exist-db.org) at the moment. In theory the core library module should run 
+anywhere. It depends on functions only available in XQuery version 3.1 (or higher).
 
-The released package requires existdb 4.7.0 or higher, due to a bug that caused
+The released package requires eXist-db 4.7.0 or higher, due to a bug that caused
 unpredictable behaviour when using `xbow:wrap-element` and related functions (see [original issue](https://github.com/eXist-db/exist/issues/1960) for details).
 
-We are trading readability, maintainability and comfort for speed with this module.
+We are trading readability, maintainability, and comfort for speed with this module.
 FLOWR-expressions are well optimized and execute at least twice as fast.
 This module will only really shine when the runtime is able to parallelize function calls and would
 also benefit heavily from lazy evaluation.
