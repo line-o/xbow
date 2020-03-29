@@ -523,14 +523,20 @@ function xbow:for-each-index ($array-or-items as item()*, $func as function(*)) 
    xbow:array-fill(4, function ($i, $p) { $i + $p })
  :)
 declare
-function xbow:array-fill ($size as xs:positiveInteger, $function-or-value as item()?) as array(*) {
-    typeswitch ($function-or-value)
-    case function(*) 
-        return xbow:array-for-each-index(
-            array { (1 to $size) }, $function-or-value)
-    default 
-        return array:for-each(
-            array { (1 to $size) }, function ($ignore) { $function-or-value })
+function xbow:array-fill ($size as xs:integer, $function-or-value as item()?) as array(*) {
+    if ($size < 1)
+    then (error(
+        xs:QName('xbow:invalid-argument'),
+        "array size must be greater than zero"))
+    else (
+        typeswitch ($function-or-value)
+        case function(*) 
+            return xbow:array-for-each-index(
+                array { (1 to $size) }, $function-or-value)
+        default 
+            return array:for-each(
+                array { (1 to $size) }, function ($ignore) { $function-or-value })
+    )
 };
 
 declare
