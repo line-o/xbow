@@ -283,14 +283,13 @@ function xbow-spec:array-distinct-count () {
 };
 
 declare 
-    %test:assertEquals('11-11601893110')
+    %test:assertEqualsPermutation('11','-1','16','0','1','8','9','31','10')
 function xbow-spec:distinct-values () {
     $xbow-spec:nested-array
         => xbow:to-sequence()
         => xbow:distinct-duplicates(function ($item) { $item?n })
         => xbow:pluck('distinct')
         => map:keys()
-        => string-join()
 };
 
 declare 
@@ -320,15 +319,14 @@ function xbow-spec:wrap () {
 };
 
 declare
-    %test:assertEquals('<root><a>1</a><a>2</a><a>3</a><a>4</a><a>5</a><a>6</a></root>')
+    %test:assertEquals('<a>1</a>','<a>2</a>','<a>3</a>','<a>4</a>','<a>5</a>','<a>6</a>')
 function xbow-spec:wrap-each () {
     (1 to 6) 
         => xbow:wrap-each('a')
-        => xbow:wrap-element('root')
 };
 
 declare
-    %test:assertEquals('<root><a>1</a><b>2</b></root>')
+    %test:assertTrue
 function xbow-spec:wrap-map-element () {
     map {
         'a': 1,
@@ -336,7 +334,10 @@ function xbow-spec:wrap-map-element () {
     }
         => xbow:wrap-map-element()
         => xbow:wrap-element('root')
-
+        => (function ($nodes as node()+) {
+            $nodes/a/text() eq '1' and
+            $nodes/b/text() eq '2'
+        })()
 };
 
 declare
@@ -351,7 +352,7 @@ function xbow-spec:wrap-map-attribute () {
 };
 
 declare
-    %test:assertEquals('a','b','h')
+    %test:assertEqualsPermutation('a','b','h')
 function xbow-spec:map-filter-keys () {
     $xbow-spec:map
         => xbow:map-filter-keys(('a', 'b', 'h'))
