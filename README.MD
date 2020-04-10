@@ -204,16 +204,16 @@ all **throw**!
 
 - [x] Add convenience functions for boolean tests on sequence items
     (`all`, `none`, `some`) 
-- [] Rename xbow:map-reverse (to xbow:map-flip for example)
-- [] Change namespace to `xb` for brevity
-- [] Test/support elements with namespaces in `wrap*`
+- [ ] Rename xbow:map-reverse (to xbow:map-flip for example)
+- [ ] Change namespace to `xb` for brevity
+- [ ] Test/support elements with namespaces in `wrap*`
 
-- [] More examples
-- [] Extend documentation on concepts
-- [] Generate xqdoc Documentation at build
+- [ ] More examples
+- [ ] Extend documentation on concepts
+- [ ] Generate xqdoc Documentation at build
 
-- [] Replace `ant` with `gulp-exist` +watcher 
-- [] Create packages for other XQuery runtimes
+- [ ] Replace `ant` with `gulp-exist` +watcher 
+- [ ] Create packages for other XQuery runtimes
 
 ## Known Issues
 
