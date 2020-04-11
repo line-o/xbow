@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <package 
   xmlns="http://expath.org/ns/pkg" name="http://line-o.de/xq/xbow"
-  abbrev="xbow" version="1.1.0" spec="1.0">
+  abbrev="xbow" version="1.2.0" spec="1.0">
   <title>Shoot arrow expressions fast and comfortably</title>
   <dependency processor="http://exist-db.org" semver-min="4.7.0"/>
   <xquery>

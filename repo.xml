@@ -3,7 +3,7 @@
   <description>Shoot arrow expressions fast and comfortably</description>
   <author>Juri Leino</author>
   <website>http://line-o.de/xq/xbow</website>
-  <status>alpha</status>
+  <status>beta</status>
   <license>MIT</license>
   <copyright>true</copyright>
   <type>library</type>
