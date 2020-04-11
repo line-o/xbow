@@ -132,26 +132,92 @@ function xbow:some ($sequence as item()*, $comparison-function as function(*)) a
     })
 };
 
-(: accessor helper :)
+(: accessor helpers :)
 
 declare
-function xbow:pluck ($field as xs:string) as item()* {
+function xbow:pluck ($field as xs:anyAtomicType) as item()* {
     xbow:pluck(?, $field)
 };
 
 declare
-function xbow:pluck ($map as map(*), $field as xs:string) as item()* {
+function xbow:pluck ($map-or-array-or-node as item(), $field as xs:anyAtomicType) as item()* {
+    typeswitch($map-or-array-or-node)
+        case array(*)
+            return xbow:pluck-array($map-or-array-or-node, $field)
+        case map(*)
+            return xbow:pluck-map($map-or-array-or-node, $field)
+        case node()
+            return xbow:pluck-node($map-or-array-or-node, $field)
+        default
+            return error(
+                xs:QName('xbow:invalid-argument'), 
+                ``[`{$map-or-array-or-node}` is not an array, a map nor a node]``)
+};
+
+declare
+function xbow:pluck-map ($field as xs:string) as item()* {
+    xbow:pluck-map(?, $field)
+};
+
+declare
+function xbow:pluck-map ($map as map(*), $field as xs:string) as item()* {
     $map($field)
 };
 
 declare
-function xbow:pluck-deep ($fields as xs:string*) as item()* {
+function xbow:pluck-array ($index as xs:integer) as item()* {
+    xbow:pluck-array(?, $index)
+};
+
+declare
+function xbow:pluck-array ($array as array(*), $index as xs:integer) as item()* {
+    $array($index)
+};
+
+declare
+function xbow:pluck-node ($field as xs:string) as item()* {
+    xbow:pluck-node(?, $field)
+};
+
+declare
+function xbow:pluck-node ($node as node(), $field as xs:string+) as item()* {
+    if (contains($field, '//'))
+    then (error(
+        xs:QName('xbow:invalid-dynamic-path'), 
+        ``[`{$field}` contains "//" which is not supported]``))
+    else if (contains($field, '/'))
+    then (fold-left(tokenize($field, '/'), $node, xbow:pluck-node-part#2))
+    else if (count($field) > 1)
+    then (fold-left($field, $node, xbow:pluck-node-part#2))
+    else (xbow:pluck-node-part($node, $field))
+};
+
+declare
+    %private
+function xbow:pluck-node-part ($node as node(), $path-part as xs:string?) {
+    if (contains($path-part, ':') or contains($path-part, '[') or contains($path-part, '('))
+    then (error(
+        xs:QName('xbow:invalid-dynamic-path'), 
+        ``[`{$path-part}` contains ":", "[" or "(" which is not supported]``))
+    else if (empty($path-part))
+    then (root($node))
+    else if ($path-part = ('', '.'))
+    then ($node)
+    else if ($path-part eq '..')
+    then ($node/..)
+    else if (starts-with($path-part, '@'))
+    then ($node/@*[local-name() eq substring($path-part, 2)])
+    else ($node/*[name() eq $path-part])    
+};
+
+declare
+function xbow:pluck-deep ($fields as xs:anyAtomicType*) as item()* {
     xbow:pluck-deep(?, $fields)
 };
 
 declare
-function xbow:pluck-deep ($map as map(*), $fields as xs:string*) as item()* {
-    fold-left($fields, $map, xbow:pluck#2)
+function xbow:pluck-deep ($map-or-array-or-node as item(), $fields as xs:anyAtomicType*) as item()* {
+    fold-left($fields, $map-or-array-or-node, xbow:pluck#2)
 };
 
 (: stats :)
