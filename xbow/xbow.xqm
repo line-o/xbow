@@ -6,6 +6,9 @@ xquery version "3.1";
 
 module namespace xbow="http://line-o.de/xq/xbow";
 
+(: Saxon does not declare map and array namespaces by default :)
+declare namespace map = "http://www.w3.org/2005/xpath-functions/map";
+declare namespace array = "http://www.w3.org/2005/xpath-functions/array";
 
 (:~
  : get the first $n items from sequence $s
@@ -158,17 +161,17 @@ declare variable $xbow:disdup-init := map {
     'duplicates': ()
 };
 
-declare function xbow:disdup-reducer ($result as map(), $next as xs:string) as map() {
+declare function xbow:disdup-reducer ($result as map(*), $next as xs:string) as map(*) {
     if (exists($result?distinct($next)))
     then (map:put($result, 'duplicates', ($result?duplicates, $next)))
     else (map:put($result, 'distinct', map:put($result?distinct, $next, true())))
 };
 
-declare function xbow:distinct-duplicates($s as item()*) as map() {
+declare function xbow:distinct-duplicates($s as item()*) as map(*) {
     fold-left($s, $xbow:disdup-init, xbow:disdup-reducer#2)
 };
 
-declare function xbow:distinct-duplicates($s as item()*, $accessor as function(*)) as map() {
+declare function xbow:distinct-duplicates($s as item()*, $accessor as function(*)) as map(*) {
     fold-left(for-each($s, $accessor(?)), $xbow:disdup-init, xbow:disdup-reducer#2)
 };
 
@@ -317,7 +320,7 @@ function xbow:wrap-map-element ($map as map(*)) {
 };
 
 declare
-function xbow:map-filter-keys ($map as map(), $keys as xs:string*) {
+function xbow:map-filter-keys ($map as map(*), $keys as xs:string*) {
     let $f := function ($key) { map:entry($key, $map($key)) }
     
     return
@@ -331,7 +334,7 @@ function xbow:map-filter-keys ($map as map(), $keys as xs:string*) {
     xbow:map-reverse(map { 'key': 'value'})
  :)
 declare
-function xbow:map-reverse ($map as map()) {
+function xbow:map-reverse ($map as map(*)) {
     map:for-each($map, function ($k, $v) { map { $v: $k } })
         => map:merge()
 };
