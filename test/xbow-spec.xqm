@@ -81,6 +81,23 @@ function xbow-spec:lt-returns-boolean () {
 };
 
 declare 
+    %test:assertEquals(1)
+function xbow-spec:xml-filter-eq () {
+    $xbow-spec:xml/a/@n/string()
+        => filter(xbow:eq('23'))
+        => count()
+};
+
+declare 
+    %test:assertEquals(8)
+function xbow-spec:xml-filter-ne () {
+    $xbow-spec:xml/a/@n/string()
+        => filter(xbow:ne('23'))
+        => filter(xbow:ne('16'))
+        => count()
+};
+
+declare 
     %test:assertEquals(6)
 function xbow-spec:xml-filter-lt-accessor () {
     $xbow-spec:xml/a
@@ -105,28 +122,11 @@ function xbow-spec:xml-filter-eq-accessor () {
 };
 
 declare 
-    %test:assertEquals(1)
-function xbow-spec:xml-filter-ne-string-accessor () {
-    $xbow-spec:xml/a/@n/string()
-        => filter(xbow:eq('23'))
-        => count()
-};
-
-declare 
     %test:assertEquals(8)
 function xbow-spec:xml-filter-ne-accessor () {
     $xbow-spec:xml/a
         => filter(xbow:ne(23, xbow-spec:n-integer-accessor#1))
         => filter(xbow:ne(16, xbow-spec:n-integer-accessor#1))
-        => count()
-};
-
-declare 
-    %test:assertEquals(8)
-function xbow-spec:xml-filter-ne-string-accessor () {
-    $xbow-spec:xml/a/@n/string()
-        => filter(xbow:ne('23'))
-        => filter(xbow:ne('16'))
         => count()
 };
 
@@ -155,12 +155,6 @@ declare
     %test:assertEquals(2)
 function xbow-spec:pluck-array () {
     [1, 2] => xbow:pluck(2)
-};
-
-declare 
-    %test:pending
-function xbow-spec:pluck-array () {
-    [1, 2] => xbow:pluck(3)
 };
 
 declare 
@@ -244,13 +238,12 @@ function xbow-spec:distinct-count () {
 };
 
 declare 
-    %test:assertEquals('1')
-function xbow-spec:distinct-values () {
+    %test:assertEqualsPermutation("23","16","11","3","2","1","10","6","-1")
+function xbow-spec:distinct-values-xml () {
     $xbow-spec:xml/a/@n/string()
         => xbow:distinct-duplicates()
         => xbow:pluck('distinct')
         => map:keys()
-        => string-join()
 };
 
 declare 
@@ -284,7 +277,7 @@ function xbow-spec:array-distinct-count () {
 
 declare 
     %test:assertEqualsPermutation('11','-1','16','0','1','8','9','31','10')
-function xbow-spec:distinct-values () {
+function xbow-spec:distinct-values-array () {
     $xbow-spec:nested-array
         => xbow:to-sequence()
         => xbow:distinct-duplicates(function ($item) { $item?n })
@@ -529,7 +522,7 @@ function xbow-spec:categorize-number-of-items () {
 
 declare
     %test:assertEquals("<user first=&quot;Susan&quot; last=&quot;Young&quot; age=&quot;8&quot;/>","<user first=&quot;Chris&quot; last=&quot;Christie&quot; age=&quot;15&quot;/>")
-function xbow-spec:categorize-number-of-items () {
+function xbow-spec:categorize-items () {
     $xbow-spec:user-xml/user
         => xbow:categorize(
             [ xbow:lt(21), xbow:ge(21) ],
