@@ -116,7 +116,7 @@ if you just want to use a sorting function.
 This will sort numerical entries in descending order.
 
 ```xquery
-(0, 3, 9, 8) => xbow:descending(?)
+(0, 3, 9, 8) => xbow:descending()
 ```
 
 Returns `(9, 8, 3, 0)`
@@ -183,6 +183,48 @@ outputs
 </root>
 ```
 
+## Utility
+
+Some handy expressions in XQuery, like `?*` to convert an array
+into a sequence, cannot be easily used after the arrow operator.
+xbow wraps those in functions for you so that you do not have to.
+
+```xquery
+[1,2] => xbow:to-sequence(),
+(1,2) => xbow:to-array()
+```
+
+FLWOR operations allow you to operate on the position of each element.
+`fn:for-each` does not allow that.
+`xbow:for-each-index` adds that. You can operate on a sequence or an array 
+
+```xquery
+(2 to 4)
+  => xbow:for-each-index(function ($v, $i) {
+    if ($i = 2) then ($v - $i) else ($v)
+  })
+```
+
+results in `(2, 1, 4)`. Only the value for the second item changed.
+
+
+`xbow:array-fill` lets you create an arrayfill an array with a value
+
+```xquery
+xbow:array-fill(3, true())
+```
+
+or the return value of a function
+
+```xquery
+xbow:array-fill(10, function ($value, $position) {
+  xbow:lt(($value - 5))
+})
+```
+
+The above will output an array of 10 anonymous functions.
+Each of them comparators suitable to use in `xbow:categorize`.
+The range will be from `xbow:lt(-5)` to `xbow:lt(5)`.
 
 ## General Arrow Syntax
 
@@ -190,10 +232,14 @@ Remember:
 
 ```xquery
   (0 to 9) => sum(),
-  (0 to 9) => sum(?)
   (0 to 9) => (function($a) { sum($a) })()
 ```
-is fine
+is fine.
+
+```xquery
+  (0 to 9) => concat(?)
+```
+will return a sequence of functions
 
 but `(0 to 9) => sum(.)`
 or `(0 to 9) => sum#1`
@@ -214,15 +260,21 @@ all **throw**!
 - [ ] Replace `ant` with `gulp-exist` +watcher 
 - [ ] Create packages for other XQuery runtimes
 
-## Known Issues
+## Compatibility
 
-The xBow module is only tested on and distributed for [eXist-db](https://exist-db.org) at the moment. In theory the core library module should run 
-anywhere. It depends on functions only available in XQuery version 3.1 (or higher).
+The xBow module tests are written for [eXist-db](https://exist-db.org) and this is also its build target.
+In theory the core library module should run on any XQuery 3.1 processor.
+It depends on functions only available in XQuery version 3.1 (or higher).
+
+The xBow module is compatible with Saxon 10 (HE) since v1.2.0. Older versions of the Home Edition of Saxon
+do not allow the use of higher order functions. Saxon 9 PE and 9 EE might work as well. 
 
 The released package requires eXist-db 4.7.0 or higher, due to a bug that caused
 unpredictable behaviour when using `xbow:wrap-element` and related functions (see [original issue](https://github.com/eXist-db/exist/issues/1960) for details).
 
-We are trading readability, maintainability, and comfort for speed with this module.
+## Performance
+
+We are trading readability, maintainability and comfort for speed with this module.
 FLOWR-expressions are well optimized and execute at least twice as fast.
 This module will only really shine when the runtime is able to parallelize function calls and would
 also benefit heavily from lazy evaluation.
