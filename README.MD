@@ -1,6 +1,6 @@
 # xBow
 
-![xBow logo](xbow-logo.svg)
+![xBow logo](readme.svg)
 
 [![Build Status](https://travis-ci.com/line-o/xbow.svg)](https://travis-ci.com/line-o/xbow)
 
