@@ -228,23 +228,28 @@ The range will be from `xbow:lt(-5)` to `xbow:lt(5)`.
 
 ## General Arrow Syntax
 
-Remember:
+**Remember:**
 
 ```xquery
   (0 to 9) => sum(),
   (0 to 9) => (function($a) { sum($a) })()
 ```
-is fine.
+is **fine**.
 
 ```xquery
   (0 to 9) => concat(?)
 ```
-will return a sequence of functions
+will return **a function** with an arity of 1.
 
-but `(0 to 9) => sum(.)`
-or `(0 to 9) => sum#1`
-or `(0 to 9) => function ($a) { sum($a) }`
-all **throw**!
+**But**
+
+`(0 to 9) => sum(.)`,
+
+`(0 to 9) => sum#1` or
+
+`(0 to 9) => function ($a) { sum($a) }`
+
+will throw an **exception**!
 
 ## Roadmap / TODOs
 
