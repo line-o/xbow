@@ -4,7 +4,7 @@ import module namespace xbow="http://line-o.de/xq/xbow";
 
 declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
 
-declare option output:method "html5";
+declare option output:method "html";
 declare option output:media-type "text/html";
 declare option output:indent "no";
 
@@ -23,84 +23,77 @@ declare variable $local:xml :=
 </root>
 ;
 
-declare function local:first-letter-of-last ($item) {
+declare variable $local:age-category-rules := [
+    xbow:lt(12), xbow:lt(20), xbow:lt(30), xbow:lt(60),
+    xbow:lt(120), xbow:ge(120)
+];
+
+declare function local:user-age ($item as node()) as xs:integer {
+    xs:integer($item/@age)
+};
+
+declare function local:first-letter-of-last-name ($item) {
     substring($item/@last, 1, 1)
 };
 
-declare function local:age-group ($item) {
-    let $num-age := xs:integer($item/@age)
-    return
-        if ($num-age < 12)
-        then ('children')
-        else if ($num-age < 20)
-        then ('teens')
-        else if ($num-age < 30)
-        then ('twens')
-        else if ($num-age < 60)
-        then ('adults')
-        else if ($num-age < 120)
-        then ('seniors')
-        else ('miracle')
-};
-
 declare function local:serialize-users ($users as element(user)*) {
-    for-each($users, function ($user) {
+    if (empty($users))
+    then ("none")
+    else (for-each($users, function ($user) {
         ``[`{$user/@last}`, `{$user/@first}`: `{$user/@age}`]``
-    })
+    }))
 };
 
 declare function local:identity ($i) { $i };
 
-declare function local:serialize-map-sorted-a ($map, $seq) {
-    let $f := function ($key) {
+declare function local:render-stats ($map, $seq) {
+    for-each($seq, function ($key) {
         xbow:wrap-element($key, 'dt'),
-        $map($key)
-(:            => local:identity():)
-            => xbow:wrap-each('dd')
-    }
-
-    return $seq
-        => for-each($f)
+        $map($key) => xbow:wrap-each('dd')
+    })
 };
 
-declare function local:serialize-map-sorted-b ($map, $seq) {
-    let $f := function ($key) {
-        xbow:wrap-element($key, 'dt'),
-        $map($key)
+declare function local:render-user-age-category ($cat) {
+    xbow:wrap-element($cat?label, 'dt'),
+    if (empty($cat?items))
+    then (<dd>none</dd>)
+    else (
+        $cat?items
             => for-each(function ($user) {
-                    ``[`{$user/@last}`, `{$user/@first}`: `{$user/@age}`]``
-                })
-        (: this will trigger an NPE :)
-        (: => local:serialize-users():)
+                ``[`{$user/@last}`, `{$user/@first}`: `{$user/@age}`]`` })
             => xbow:wrap-each('dd')
-    }
-
-    return $seq
-        => for-each($f)
+    )
 };
+
 
 element html {
     element body {
-        (: how many users last name begins with letter 'H'? :)
-        $local:xml//user
-            => xbow:groupBy(local:first-letter-of-last#1)
-            => xbow:pluck('H')
-            => count()
-            => xbow:wrap-element('h1')
-        ,
+        element h1 { 'User Stats' },
+        element p {
+            "useless stat of the day: ",
+            (: how many users last name begins with letter 'H'? :)
+            $local:xml//user
+                => xbow:groupBy(local:first-letter-of-last-name#1)
+                => xbow:pluck('H')
+                => count()
+                => concat(" user's lastnames start with the letter H")
+                => xbow:wrap-element('strong')
+        },
+        element h2 { "By Age Category" },
         (: group users by age :)
         $local:xml//user
-            => xbow:groupBy(local:age-group#1)
-            => local:serialize-map-sorted-b(('children', 'teens', 'twens', 'adults', 'seniors', 'miracle'))
+            => xbow:categorize($local:age-category-rules, local:user-age#1)
+            => xbow:label([
+                'children', 'teens', 'twens', 'adults', 'seniors', 'miracle' ])
+            => array:for-each(local:render-user-age-category#1)
             => xbow:wrap-element('dl')
         ,
-        (: minimum maximum and average age :)
+        element h2 { "Age Stats" },
+        (: minimum, maximum and average age :)
         $local:xml//user
-            => for-each(function ($item) { xs:integer($item/@age) })
+            => for-each(local:user-age#1)
             => xbow:num-stats()
-            => xbow:map-filter-keys(('min', 'max', 'avg'))
-            => local:serialize-map-sorted-a(('min', 'max', 'avg'))
+            => local:render-stats(('min', 'max', 'avg'))
             => xbow:wrap-element('dl')
     }
 }
- 
