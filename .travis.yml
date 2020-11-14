@@ -7,14 +7,6 @@ node_js:
   - "node"
   - "12"
 
-jdk:
-  - openjdk8
-
-addons:
-  apt:
-    packages:
-      - ant
-
 services:
   - docker
 
@@ -24,24 +16,22 @@ env:
   - img=existdb/existdb:4.7.1
 
 cache:
-  npm: true
   directories:
-    - ~/.cache
+  - ~/.npm
 
 before_install:
   - docker pull $img
-  - docker create  --name exist-ci -p 8080:8080 $img
-
-
-install:
-  - npm ci
-  - ant
-
-before_script:
-  - docker cp ./build/*.xar exist-ci:exist/autodeploy
+  - docker create --name exist-ci -p 8080:8080 $img
   - docker start exist-ci
   # exist needs time
   - sleep 60
+
+install:
+  - npm ci
+  # install package in exist-container
+  - npm start
+
+before_script:
   - docker ps
 
 script:

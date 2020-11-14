@@ -1,0 +1,20 @@
+{
+    "servers": {
+        "localhost": {
+            "server": "http://localhost:8080/exist",
+            "user": "admin",
+            "password": "",
+            "root": "/db/system/repo/xbow"
+        }
+    },
+    "package": {
+        "author": "Juri Leino",
+        "target": "xbow",
+        "description": "Shoot arrow (expressions) fast and comfortably",
+        "namespace": "http://line-o.de/xq/xbow",
+        "website": "https://github.com/line-o/xbow",
+        "status": "beta",
+        "title": "xBow - Shoot arrow expressions fast and comfortably",
+        "export": "xbow.xqm"
+    }
+}

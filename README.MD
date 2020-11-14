@@ -1,6 +1,6 @@
 # xBow
 
-![xBow logo](readme.svg)
+![xBow logo](src/readme.svg)
 
 [![Build Status](https://travis-ci.com/line-o/xbow.svg)](https://travis-ci.com/line-o/xbow)
 
@@ -18,8 +18,8 @@ Install the [XAR](https://github.com/line-o/xbow/releases/) and
 
 Below you'll find some key things xbow has to offer.
 For more, have a look at the
-[examples](https://github.com/line-o/xbow/tree/master/test) and
-[tests](https://github.com/line-o/xbow/tree/master/test).
+[examples](https://github.com/line-o/xbow/tree/master/src/examples) and
+[tests](https://github.com/line-o/xbow/tree/master/src/test).
 
 Even if the module was developed with arrow expressions in mind,
 all of it can be used without this language feature, as well.
@@ -262,7 +262,7 @@ will throw an **exception**!
 - [ ] Extend documentation on concepts
 - [ ] Generate XQDoc documentation at build
 
-- [ ] Replace `ant` with `gulp-exist` +watcher 
+- [x] Replace `ant` with `gulp-exist` +watcher 
 - [ ] Create packages for other XQuery runtimes
 
 ## Compatibility

@@ -4,7 +4,7 @@ const fs = require('fs')
 const expect = require('chai').expect
 const s = require('superagent')
 
-const testRunnerLocalPath = 'test/mocha/runner.xq'
+const testRunnerLocalPath = 'src/test/mocha/runner.xq'
 
 const pkg = JSON.parse(fs.readFileSync('package.json'))
 const testCollection = '/test-' + pkg.name + '-' + pkg.version
