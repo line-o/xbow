@@ -63,7 +63,7 @@ Temporary Items
 # =========================
 
 *.xar
-.existdb.json
+#.existdb.json
 query-results
 
 # =========================
