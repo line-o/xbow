@@ -194,7 +194,7 @@ function xbow:pluck-node ($node as node(), $field as xs:string+) as item()* {
 
 declare
     %private
-function xbow:pluck-node-part ($node as node(), $path-part as xs:string?) {
+function xbow:pluck-node-part ($node as node(), $path-part as xs:string?) as node()? {
     if (contains($path-part, ':') or contains($path-part, '[') or contains($path-part, '('))
     then (error(
         xs:QName('xbow:invalid-dynamic-path'), 
@@ -255,7 +255,7 @@ function xbow:sequence-stats-reducer ($result as map(*), $next as xs:numeric) as
 declare variable $xbow:initial-stats :=
     map { 'min': (), 'max': (), 'avg': 0.0, 'sum': 0, 'length': 0 };
 
-declare function xbow:num-stats ($sequence as xs:numeric*) {
+declare function xbow:num-stats ($sequence as xs:numeric*) as map(*) {
     fold-left($sequence, $xbow:initial-stats, xbow:sequence-stats-reducer#2)
 };
 
@@ -543,7 +543,7 @@ function xbow:array-put ($array as array(*), $pos as xs:integer, $items-to-put a
     xbow:sequence-for-each-index((1,2,3), function ($i, $p) { $i + $p })
  :)
 declare
-function xbow:sequence-for-each-index ($seq as item()*, $func as function (*)) as item()* {
+function xbow:sequence-for-each-index ($seq as item()*, $func as function(*)) as item()* {
     fold-left($seq, [0, ()], function ($result as array(*), $next as item()) {
         let $pos := $result?1 + 1
         return [$pos, ($result?2, $func($next, $pos))]
@@ -610,26 +610,26 @@ function xbow:array-fill ($size as xs:integer, $function-or-value as item()?) as
 
 declare
     %private
-function xbow:match-first ($item, $result, $match) {
+function xbow:match-first ($item as item(), $result as xs:integer+, $rule as function(*)) as xs:integer+ {
     let $current-pos := head($result) + 1
     let $current-match := tail($result)
 
     return
         if ($current-match > 0)
         then $result (: did match, do nothing :)
-        else if ($match($item))
+        else if ($rule($item))
         then ($current-pos, $current-pos)
         else ($current-pos, $current-match)
 };
 
 declare
     %private
-function xbow:match-all ($item, $result, $match) {
+function xbow:match-all ($item as item(), $result as xs:integer+, $rule as function(*)) as xs:integer+ {
     let $current-pos := head($result) + 1
     let $current-match := tail($result)
 
     return
-        if ($match($item))
+        if ($rule($item))
         then ($current-pos, $current-pos)
         else ($current-pos, $current-match)
 };
