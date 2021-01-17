@@ -43,7 +43,7 @@ exports.clean = clean
  */
 function templates() {
     return src('src/*.tmpl')
-        .pipe(replace(replacements))
+        .pipe(replace(replacements, {}))
         .pipe(rename(path => { path.extname = "" }))
         .pipe(dest('build/'))
 }
@@ -86,7 +86,7 @@ function watchBuild () {
 }
 
 // construct the current xar name from available data
-const packageName = () => `${existJSON.package.target}-${version}.xar`
+const packageName = () => `${package.target}-${version}.xar`
 
 /**
  * create XAR package in repo root
@@ -102,7 +102,7 @@ function xar () {
  */
 function installXar () {
     return src(packageName())
-        .pipe(existClient.install({ packageUri }))
+        .pipe(existClient.install({ packageUri: package.namespace }))
 }
 
 // composed tasks
