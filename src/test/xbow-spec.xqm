@@ -555,3 +555,71 @@ function xbow-spec:combine-for-each () {
 
     return $r1 = $r2
 };
+
+declare
+    %test:assertFalse
+function xbow-spec:last-member-of-empty () {
+    [] 
+        => xbow:last-member-of()
+        => exists()
+};
+
+declare
+    %test:assertEquals(9)
+function xbow-spec:last-member-of-range () {
+    array { (1 to 9) } 
+        => xbow:last-member-of()
+};
+
+declare
+    %test:assertFalse
+function xbow-spec:last-item-of-empty () {
+    ()
+        => xbow:last-item-of()
+        => exists()
+};
+
+declare
+    %test:assertEquals(9)
+function xbow-spec:last-item-of-range () {
+    (1 to 9)
+        => xbow:last-item-of()
+};
+
+declare
+    %test:assertFalse
+function xbow-spec:last-empty () {
+    ()
+        => xbow:last()
+        => exists()
+};
+
+declare
+    %test:assertFalse
+function xbow-spec:last-empty-array () {
+    []
+        => xbow:last()
+        => exists()
+};
+
+declare
+    %test:assertEquals(9)
+function xbow-spec:last-array () {
+    array { (1 to 9) } 
+        => xbow:last()
+};
+
+declare
+    %test:assertEquals(9)
+function xbow-spec:last-sequence () {
+    (1 to 9)
+        => xbow:last()
+};
+
+declare
+    %test:assertEquals(1)
+function xbow-spec:last-item-is-array () {
+    (1 to 9, [1])
+        => xbow:last()
+        => array:get(1)
+};

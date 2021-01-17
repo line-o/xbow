@@ -538,6 +538,41 @@ function xbow:array-put ($array as array(*), $pos as xs:integer, $items-to-put a
 };
 
 (:~
+ : Return the last item in a sequence
+ : will return an empty array if array is empty
+ :)
+declare
+function xbow:last($array-or-sequence as item()*) as item()? {
+    typeswitch($array-or-sequence)
+        case array(*)
+            return xbow:last-member-of($array-or-sequence)
+        default
+            return xbow:last-item-of($array-or-sequence)
+};
+
+(:~
+ : Return the last item in a sequence
+ : will return an empty array if array is empty
+ :)
+declare
+function xbow:last-item-of($seq as item()*) as item()? {
+    if (count($seq))
+    then ($seq[count($seq)])
+    else ()
+};
+
+(:~
+ : Return the last item in array (guarded)
+ : will return an empty array if array is empty
+ :)
+declare
+function xbow:last-member-of($array as array(*)) as item()? {
+    if (array:size($array))
+    then ($array(array:size($array)))
+    else ()
+};
+
+(:~
  : Extended for-each, will pass the position of the current item
  : to the provided function.
  : Functional equivalent of `for $item at $pos in $seq`.

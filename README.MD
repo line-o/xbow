@@ -226,6 +226,22 @@ The above will output an array of 10 anonymous functions.
 Each of them comparators suitable to use in `xbow:categorize`.
 The range will be from `xbow:lt(-5)` to `xbow:lt(5)`.
 
+`xbow:last` is the latest addition to the utility functions.
+It returns the last element of a sequence or array. If the list
+does not contain elements an empty sequence is returned.
+
+```xquery
+[1, 2, 9] => xbow:last() (: returns 9 :)
+```
+
+```xquery
+(1, 2, 9) => xbow:last() (: returns 9 :)
+```
+
+```xquery
+(1, 2, []) => xbow:last() (: returns [] :)
+```
+
 ## General Arrow Syntax
 
 **Remember:**
