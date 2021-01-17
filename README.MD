@@ -2,7 +2,7 @@
 
 ![xBow logo](src/readme.svg)
 
-[![Build Status](https://travis-ci.com/line-o/xbow.svg)](https://travis-ci.com/line-o/xbow)
+![Test and Release](https://github.com/line-o/xbow/workflows/Test%20and%20Release/badge.svg) [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
 XQuery helper function library to be used with the arrow operator.
 Should be read as **crossbow**, a tool to shoot arrows fast and accurately.
@@ -270,7 +270,7 @@ will throw an **exception**!
 ## Roadmap / TODOs
 
 - [x] Add convenience functions for boolean tests on sequence items (`all`, `none`, `some`) 
-- [ ] Rename xbow:map-reverse (to xbow:map-flip for example)
+- [x] Rename xbow:map-reverse (to xbow:map-flip for example)
 - [ ] Change namespace to `xb` for brevity
 - [ ] Test/support elements with namespaces in `wrap*`
 
