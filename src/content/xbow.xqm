@@ -606,6 +606,7 @@ function xbow:array-fill ($size as xs:integer, $function-or-value as item()?) as
             return xbow:array-for-each-index(
                 array { (1 to $size) }, $function-or-value)
         default 
+            (: we need an array to iterate over for [(),()] to be possible :)
             return array:for-each(
                 array { (1 to $size) }, function ($ignore) { $function-or-value })
     )
