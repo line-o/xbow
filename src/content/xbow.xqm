@@ -650,14 +650,17 @@ function xbow:find-first-matching ($rules as array(*), $item as item()) as xs:in
  : with two keys each:
  : 'items' (n-th item of the first array) and
  : 'label' (n-th item of the second array)
- : NOTE: both arrays must be of same length
+ : NOTE: both arrays must have the same size
  :)
 declare
-function xbow:label($array as array(*), $labels as array(*)) as array(map(*)) {
-    array:for-each-pair($array, $labels, function ($items, $label) {
-        map {
-            'items': $items,
-            'label': $label
-        }
-    })
+function xbow:label ($array as array(*), $labels as array(*)) as array(map(*)) {
+    array:for-each-pair($array, $labels, xbow:assign-label#2)
+};
+
+declare %private
+function xbow:assign-label ($items as item()*, $label as xs:string) as map(xs:string, item()*) {
+    map {
+        'items': $items,
+        'label': $label
+    }
 };
