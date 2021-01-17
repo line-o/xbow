@@ -2,7 +2,7 @@
 
 ![xBow logo](src/readme.svg)
 
-[![Build Status](https://travis-ci.com/line-o/xbow.svg)](https://travis-ci.com/line-o/xbow)
+![Test and Release](https://github.com/line-o/xbow/workflows/Test%20and%20Release/badge.svg) [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
 XQuery helper function library to be used with the arrow operator.
 Should be read as **crossbow**, a tool to shoot arrows fast and accurately.
@@ -226,6 +226,22 @@ The above will output an array of 10 anonymous functions.
 Each of them comparators suitable to use in `xbow:categorize`.
 The range will be from `xbow:lt(-5)` to `xbow:lt(5)`.
 
+`xbow:last` is the latest addition to the utility functions.
+It returns the last element of a sequence or array. If the list
+does not contain elements an empty sequence is returned.
+
+```xquery
+[1, 2, 9] => xbow:last() (: returns 9 :)
+```
+
+```xquery
+(1, 2, 9) => xbow:last() (: returns 9 :)
+```
+
+```xquery
+(1, 2, []) => xbow:last() (: returns [] :)
+```
+
 ## General Arrow Syntax
 
 **Remember:**
@@ -254,7 +270,7 @@ will throw an **exception**!
 ## Roadmap / TODOs
 
 - [x] Add convenience functions for boolean tests on sequence items (`all`, `none`, `some`) 
-- [ ] Rename xbow:map-reverse (to xbow:map-flip for example)
+- [x] Rename xbow:map-reverse (to xbow:map-flip for example)
 - [ ] Change namespace to `xb` for brevity
 - [ ] Test/support elements with namespaces in `wrap*`
 
@@ -273,6 +289,10 @@ It depends on functions only available in XQuery version 3.1 (or higher).
 
 The xBow module is compatible with Saxon 10 (HE) since v1.2.0. Older versions of the Home Edition of Saxon
 do not allow the use of higher order functions. Saxon 9 PE and 9 EE might work as well. 
+
+You can run xBow on baseX (tested with version 9.4.5). To install the most recent version run
+`REPO INSTALL https://raw.githubusercontent.com/line-o/xbow/master/src/content/xbow.xqm`
+in basex REPL.
 
 The released package requires eXist-db 4.7.0 or higher, due to a bug that caused
 unpredictable behaviour when using `xbow:wrap-element` and related functions (see [original issue](https://github.com/eXist-db/exist/issues/1960) for details).

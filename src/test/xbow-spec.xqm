@@ -368,35 +368,35 @@ function xbow-spec:ascending () {
 
 declare
     %test:assertEquals('-1', '0', '1', '8', '9', '10', '11', '16', '31')
-function xbow-spec:map-reverse () {
+function xbow-spec:map-flip () {
     $xbow-spec:map
-        => xbow:map-reverse()
+        => xbow:map-flip()
         => map:keys()
         => xbow:ascending()
 };
 
 declare
     %test:assertEquals('-2', '-1', '0', '7', '8', '9', '10', '15', '30')
-function xbow-spec:map-reverse-function-add () {
+function xbow-spec:map-flip-function-add () {
     $xbow-spec:map
-        => xbow:map-reverse(function ($k) {xs:int($k) - 1})
+        => xbow:map-flip(function ($k) {xs:int($k) - 1})
         => map:keys()
         => xbow:ascending()
 };
 
 declare
     %test:assertEquals('1f61f08a-04d5-3a9b-a749-7fad4d9b612c')
-function xbow-spec:map-reverse-function-uuid () {
+function xbow-spec:map-flip-function-uuid () {
     map { 'key': 'value' }
-        => xbow:map-reverse(util:uuid(?))
+        => xbow:map-flip(util:uuid(?))
         => map:keys()
 };
 
 declare
     %test:assertEquals('55')
-function xbow-spec:map-reverse-function-sum () {
+function xbow-spec:map-flip-function-sum () {
     map { 'key': (1 to 10) }
-        => xbow:map-reverse(sum(?))
+        => xbow:map-flip(sum(?))
         => map:keys()
 };
 
@@ -554,4 +554,72 @@ function xbow-spec:combine-for-each () {
     let $r2 := $d => for-each($fna) => for-each($fnb)
 
     return $r1 = $r2
+};
+
+declare
+    %test:assertFalse
+function xbow-spec:last-member-of-empty () {
+    [] 
+        => xbow:last-member-of()
+        => exists()
+};
+
+declare
+    %test:assertEquals(9)
+function xbow-spec:last-member-of-range () {
+    array { (1 to 9) } 
+        => xbow:last-member-of()
+};
+
+declare
+    %test:assertFalse
+function xbow-spec:last-item-of-empty () {
+    ()
+        => xbow:last-item-of()
+        => exists()
+};
+
+declare
+    %test:assertEquals(9)
+function xbow-spec:last-item-of-range () {
+    (1 to 9)
+        => xbow:last-item-of()
+};
+
+declare
+    %test:assertFalse
+function xbow-spec:last-empty () {
+    ()
+        => xbow:last()
+        => exists()
+};
+
+declare
+    %test:assertFalse
+function xbow-spec:last-empty-array () {
+    []
+        => xbow:last()
+        => exists()
+};
+
+declare
+    %test:assertEquals(9)
+function xbow-spec:last-array () {
+    array { (1 to 9) } 
+        => xbow:last()
+};
+
+declare
+    %test:assertEquals(9)
+function xbow-spec:last-sequence () {
+    (1 to 9)
+        => xbow:last()
+};
+
+declare
+    %test:assertEquals(1)
+function xbow-spec:last-item-is-array () {
+    (1 to 9, [1])
+        => xbow:last()
+        => array:get(1)
 };

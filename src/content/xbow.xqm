@@ -194,7 +194,7 @@ function xbow:pluck-node ($node as node(), $field as xs:string+) as item()* {
 
 declare
     %private
-function xbow:pluck-node-part ($node as node(), $path-part as xs:string?) {
+function xbow:pluck-node-part ($node as node(), $path-part as xs:string?) as node()? {
     if (contains($path-part, ':') or contains($path-part, '[') or contains($path-part, '('))
     then (error(
         xs:QName('xbow:invalid-dynamic-path'), 
@@ -255,7 +255,7 @@ function xbow:sequence-stats-reducer ($result as map(*), $next as xs:numeric) as
 declare variable $xbow:initial-stats :=
     map { 'min': (), 'max': (), 'avg': 0.0, 'sum': 0, 'length': 0 };
 
-declare function xbow:num-stats ($sequence as xs:numeric*) {
+declare function xbow:num-stats ($sequence as xs:numeric*) as map(*) {
     fold-left($sequence, $xbow:initial-stats, xbow:sequence-stats-reducer#2)
 };
 
@@ -395,13 +395,16 @@ function xbow:map-filter-keys ($map as map(*), $keys as xs:string*) {
 };
 
 (:~
- : reverse keys and values of a map 
+ : flip keys and values of a map 
  : Example:
     xbow:map-reverse(map { 'key': 'value'})
  :)
 declare
-function xbow:map-reverse ($map as map(*)) {
-    map:for-each($map, function ($k, $v) { map { $v: $k } })
+function xbow:map-flip ($map as map(*)) as map(*) {
+    map:for-each($map,
+        function ($key as xs:anyAtomicType, $value as xs:anyAtomicType) as map(*) {
+            map { $value : $key }
+        })
         => map:merge()
 };
 
@@ -419,10 +422,10 @@ function xbow:map-reverse ($map as map(*)) {
     xbow:map-reverse(map { 'key': 'value'}, function ($v) { util:uuid($v) })
  :)
 declare
-function xbow:map-reverse ($map as map(*), $hash-value as function(*)) {
+function xbow:map-flip ($map as map(*), $hash-value as function(*)) as map(*) {
     map:for-each($map,
-        function ($k, $v) {
-            map { $hash-value($v): $k }
+        function ($key as xs:anyAtomicType, $value as item()*) as map(*) {
+            map { $hash-value($value): $key }
         })
         => map:merge()
 };
@@ -492,7 +495,7 @@ function xbow:categorize ($sequence as item()*, $rules as array(function(*))) as
  : spread all elements of $sequence over $scale using an $accessor function
  :)
 declare
-function xbow:categorize ($sequence as item()*, $rules as array(function(*)), $accessor as function(*)) as function(*) {
+function xbow:categorize ($sequence as item()*, $rules as array(function(*)), $accessor as function(*)) as array(*) {
     let $test := xbow:find-first-matching($rules, ?)
     let $zero := xbow:array-fill(array:size($rules), ())
 
@@ -535,6 +538,41 @@ function xbow:array-put ($array as array(*), $pos as xs:integer, $items-to-put a
 };
 
 (:~
+ : Return the last item in a sequence
+ : will return an empty array if array is empty
+ :)
+declare
+function xbow:last($array-or-sequence as item()*) as item()? {
+    typeswitch($array-or-sequence)
+        case array(*)
+            return xbow:last-member-of($array-or-sequence)
+        default
+            return xbow:last-item-of($array-or-sequence)
+};
+
+(:~
+ : Return the last item in a sequence
+ : will return an empty array if array is empty
+ :)
+declare
+function xbow:last-item-of($seq as item()*) as item()? {
+    if (count($seq))
+    then ($seq[count($seq)])
+    else ()
+};
+
+(:~
+ : Return the last item in array (guarded)
+ : will return an empty array if array is empty
+ :)
+declare
+function xbow:last-member-of($array as array(*)) as item()? {
+    if (array:size($array))
+    then ($array(array:size($array)))
+    else ()
+};
+
+(:~
  : Extended for-each, will pass the position of the current item
  : to the provided function.
  : Functional equivalent of `for $item at $pos in $seq`.
@@ -543,7 +581,7 @@ function xbow:array-put ($array as array(*), $pos as xs:integer, $items-to-put a
     xbow:sequence-for-each-index((1,2,3), function ($i, $p) { $i + $p })
  :)
 declare
-function xbow:sequence-for-each-index ($seq as item()*, $func as function (*)) as item()* {
+function xbow:sequence-for-each-index ($seq as item()*, $func as function(*)) as item()* {
     fold-left($seq, [0, ()], function ($result as array(*), $next as item()) {
         let $pos := $result?1 + 1
         return [$pos, ($result?2, $func($next, $pos))]
@@ -603,6 +641,7 @@ function xbow:array-fill ($size as xs:integer, $function-or-value as item()?) as
             return xbow:array-for-each-index(
                 array { (1 to $size) }, $function-or-value)
         default 
+            (: we need an array to iterate over for [(),()] to be possible :)
             return array:for-each(
                 array { (1 to $size) }, function ($ignore) { $function-or-value })
     )
@@ -610,26 +649,26 @@ function xbow:array-fill ($size as xs:integer, $function-or-value as item()?) as
 
 declare
     %private
-function xbow:match-first ($item, $result, $match) {
+function xbow:match-first ($item as item(), $result as xs:integer+, $rule as function(*)) as xs:integer+ {
     let $current-pos := head($result) + 1
     let $current-match := tail($result)
 
     return
         if ($current-match > 0)
         then $result (: did match, do nothing :)
-        else if ($match($item))
+        else if ($rule($item))
         then ($current-pos, $current-pos)
         else ($current-pos, $current-match)
 };
 
 declare
     %private
-function xbow:match-all ($item, $result, $match) {
+function xbow:match-all ($item as item(), $result as xs:integer+, $rule as function(*)) as xs:integer+ {
     let $current-pos := head($result) + 1
     let $current-match := tail($result)
 
     return
-        if ($match($item))
+        if ($rule($item))
         then ($current-pos, $current-pos)
         else ($current-pos, $current-match)
 };
@@ -646,14 +685,17 @@ function xbow:find-first-matching ($rules as array(*), $item as item()) as xs:in
  : with two keys each:
  : 'items' (n-th item of the first array) and
  : 'label' (n-th item of the second array)
- : NOTE: both arrays must be of same length
+ : NOTE: both arrays must have the same size
  :)
 declare
-function xbow:label($array as array(*), $labels as array(*)) as array(map(*)) {
-    array:for-each-pair($array, $labels, function ($items, $label) {
-        map {
-            'items': $items,
-            'label': $label
-        }
-    })
+function xbow:label ($array as array(*), $labels as array(*)) as array(map(*)) {
+    array:for-each-pair($array, $labels, xbow:assign-label#2)
+};
+
+declare %private
+function xbow:assign-label ($items as item()*, $label as xs:string) as map(xs:string, item()*) {
+    map {
+        'items': $items,
+        'label': $label
+    }
 };
