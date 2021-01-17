@@ -13,6 +13,9 @@
   ],
   "devDependencies": {
     "@existdb/gulp-exist": "^4.0.0",
+    "@existdb/gulp-replace-tmpl": "^1.0.0",
+    "@semantic-release/git": "^9.0.0",
+    "@semantic-release/github": "^7.2.0",
     "chai": "^4.2.0",
     "delete": "^1.1.0",
     "gulp": "^4.0.2",
@@ -20,6 +23,7 @@
     "gulp-replace": "^1.0.0",
     "gulp-zip": "^5.0.2",
     "mocha": "^8.2.1",
+    "semantic-release": "^17.3.3",
     "superagent": "^6.1.0"
   },
   "author": {
@@ -28,8 +32,9 @@
   },
   "license": "MIT",
   "scripts": {
-    "test": "node_modules/.bin/mocha src/test/mocha/*.js",
-    "start": "node_modules/.bin/gulp install"
+    "test": "mocha src/test/mocha/*.js",
+    "start": "gulp install",
+    "build": "gulp build"
   },
   "repository": {
     "type": "git",
