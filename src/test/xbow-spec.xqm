@@ -368,35 +368,35 @@ function xbow-spec:ascending () {
 
 declare
     %test:assertEquals('-1', '0', '1', '8', '9', '10', '11', '16', '31')
-function xbow-spec:map-reverse () {
+function xbow-spec:map-flip () {
     $xbow-spec:map
-        => xbow:map-reverse()
+        => xbow:map-flip()
         => map:keys()
         => xbow:ascending()
 };
 
 declare
     %test:assertEquals('-2', '-1', '0', '7', '8', '9', '10', '15', '30')
-function xbow-spec:map-reverse-function-add () {
+function xbow-spec:map-flip-function-add () {
     $xbow-spec:map
-        => xbow:map-reverse(function ($k) {xs:int($k) - 1})
+        => xbow:map-flip(function ($k) {xs:int($k) - 1})
         => map:keys()
         => xbow:ascending()
 };
 
 declare
     %test:assertEquals('1f61f08a-04d5-3a9b-a749-7fad4d9b612c')
-function xbow-spec:map-reverse-function-uuid () {
+function xbow-spec:map-flip-function-uuid () {
     map { 'key': 'value' }
-        => xbow:map-reverse(util:uuid(?))
+        => xbow:map-flip(util:uuid(?))
         => map:keys()
 };
 
 declare
     %test:assertEquals('55')
-function xbow-spec:map-reverse-function-sum () {
+function xbow-spec:map-flip-function-sum () {
     map { 'key': (1 to 10) }
-        => xbow:map-reverse(sum(?))
+        => xbow:map-flip(sum(?))
         => map:keys()
 };
 

@@ -395,13 +395,16 @@ function xbow:map-filter-keys ($map as map(*), $keys as xs:string*) {
 };
 
 (:~
- : reverse keys and values of a map 
+ : flip keys and values of a map 
  : Example:
     xbow:map-reverse(map { 'key': 'value'})
  :)
 declare
-function xbow:map-reverse ($map as map(*)) {
-    map:for-each($map, function ($k, $v) { map { $v: $k } })
+function xbow:map-flip ($map as map(*)) as map(*) {
+    map:for-each($map,
+        function ($key as xs:anyAtomicType, $value as xs:anyAtomicType) as map(*) {
+            map { $value : $key }
+        })
         => map:merge()
 };
 
@@ -419,10 +422,10 @@ function xbow:map-reverse ($map as map(*)) {
     xbow:map-reverse(map { 'key': 'value'}, function ($v) { util:uuid($v) })
  :)
 declare
-function xbow:map-reverse ($map as map(*), $hash-value as function(*)) {
+function xbow:map-flip ($map as map(*), $hash-value as function(*)) as map(*) {
     map:for-each($map,
-        function ($k, $v) {
-            map { $hash-value($v): $k }
+        function ($key as xs:anyAtomicType, $value as item()*) as map(*) {
+            map { $hash-value($value): $key }
         })
         => map:merge()
 };
