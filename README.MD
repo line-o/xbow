@@ -274,6 +274,10 @@ It depends on functions only available in XQuery version 3.1 (or higher).
 The xBow module is compatible with Saxon 10 (HE) since v1.2.0. Older versions of the Home Edition of Saxon
 do not allow the use of higher order functions. Saxon 9 PE and 9 EE might work as well. 
 
+You can run xBow on baseX (tested with version 9.4.5). To install the most recent version run
+`REPO INSTALL https://raw.githubusercontent.com/line-o/xbow/master/src/content/xbow.xqm`
+in basex REPL.
+
 The released package requires eXist-db 4.7.0 or higher, due to a bug that caused
 unpredictable behaviour when using `xbow:wrap-element` and related functions (see [original issue](https://github.com/eXist-db/exist/issues/1960) for details).
 
