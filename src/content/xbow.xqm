@@ -495,7 +495,7 @@ function xbow:categorize ($sequence as item()*, $rules as array(function(*))) as
  : spread all elements of $sequence over $scale using an $accessor function
  :)
 declare
-function xbow:categorize ($sequence as item()*, $rules as array(function(*)), $accessor as function(*)) as function(*) {
+function xbow:categorize ($sequence as item()*, $rules as array(function(*)), $accessor as function(*)) as array(*) {
     let $test := xbow:find-first-matching($rules, ?)
     let $zero := xbow:array-fill(array:size($rules), ())
 
