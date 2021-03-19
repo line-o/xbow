@@ -66,13 +66,12 @@ function xbow-spec:n-integer-accessor ($i as element()) as xs:integer { xs:integ
 declare
 function xbow-spec:age-accessor ($i as element()) as xs:integer { xs:integer($i/@age) };
 
-(:~
 declare 
-    %test:assertTrue
+    %test:assertEquals('function(*)', '1')
 function xbow-spec:lt-returns-function () {
-    xbow:lt(8) instance function()
+    let $f := xbow:lt(8)
+    return (xbow:get-type($f), function-arity($f))
 };
-:)
 
 declare 
     %test:assertTrue
