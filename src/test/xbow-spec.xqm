@@ -210,20 +210,15 @@ function xbow-spec:array-group-by-even-odd-accessor () {
 declare 
     %test:assertEquals(1)
 function xbow-spec:pluck-deep () {
-    map { 
-        'a': map { 
-            'b': map { 
-                'c': map { 
-                    'd': map { 
-                        'e': map { 
-                            'f': 1 
-                        }
-                    }
-                }
-            }
-        }
-    }
+    map {'a': map {'b': map {'c': map {'d': map {'e': map {'f': 1 }}}}}}
         => xbow:pluck-deep(('a','b','c','d','e','f'))
+};
+
+declare 
+    %test:assertEmpty
+function xbow-spec:pluck-deep-non-existent-field () {
+    map {'a': map {'b': map {'c': map {'d': map {'e': map {'f': 1 }}}}}}
+        => xbow:pluck-deep(('a','b','c', 1, 'd','e','f'))
 };
 
 

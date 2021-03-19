@@ -217,7 +217,11 @@ function xbow:pluck-deep ($fields as xs:anyAtomicType*) as item()* {
 
 declare
 function xbow:pluck-deep ($map-or-array-or-node as item(), $fields as xs:anyAtomicType*) as item()* {
-    fold-left($fields, $map-or-array-or-node, xbow:pluck#2)
+    fold-left($fields, $map-or-array-or-node, function ($eventual-item as item()*, $field) {
+        if (exists($eventual-item))
+        then (xbow:pluck($eventual-item, $field))
+        else ()
+    })
 };
 
 (: stats :)
