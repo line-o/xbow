@@ -215,6 +215,13 @@ function xbow-spec:pluck-deep () {
 };
 
 declare 
+    %test:assertEquals(1)
+function xbow-spec:pluck-deep () {
+    map {'a': ["1", map {'c': map {'d': map {'e': map {'f': 1}}}}]}
+        => xbow:pluck-deep(('a', 2,'c','d','e','f'))   
+};
+
+declare 
     %test:assertEmpty
 function xbow-spec:pluck-deep-non-existent-field () {
     map {'a': map {'b': map {'c': map {'d': map {'e': map {'f': 1 }}}}}}
