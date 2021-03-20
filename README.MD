@@ -195,8 +195,8 @@ xbow wraps those in functions for you so that you do not have to.
 ```
 
 FLWOR operations allow you to operate on the position of each element.
-`fn:for-each` does not allow that.
-`xbow:for-each-index` adds that. You can operate on a sequence or an array 
+Since `fn:for-each` does not allow that, `xbow:for-each-index` was added.
+It can operate on a sequence or an array.
 
 ```xquery
 (2 to 4)
