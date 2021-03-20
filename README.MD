@@ -279,7 +279,10 @@ will throw an **exception**!
 - [ ] Generate XQDoc documentation at build
 
 - [x] Replace `ant` with `gulp-exist` +watcher 
-- [ ] Create packages for other XQuery runtimes
+- [ ] ~~Create packages for other XQuery runtimes~~
+- [ ] Split up into modules with separate scopes (DOM, utility, ...)
+- [ ] Add element constructors (inspired by Micheal Kays proposal)
+- [ ] Rename `xbow:groupBy` to `xbow:group-by` to adhere to the XQuery naming convetions
 
 ## Compatibility
 
