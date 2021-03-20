@@ -195,8 +195,8 @@ xbow wraps those in functions for you so that you do not have to.
 ```
 
 FLWOR operations allow you to operate on the position of each element.
-`fn:for-each` does not allow that.
-`xbow:for-each-index` adds that. You can operate on a sequence or an array 
+Since `fn:for-each` does not allow that, `xbow:for-each-index` was added.
+It can operate on a sequence or an array.
 
 ```xquery
 (2 to 4)
@@ -242,18 +242,39 @@ does not contain elements an empty sequence is returned.
 (1, 2, []) => xbow:last() (: returns [] :)
 ```
 
+`xbow:get-type` will return type information of the provided item (not a sequence).
+
+NOTE: It will look deep into the inner structure of the item, if it is nested.
+Sequences as well as arities are not detected. Whenever mixed content is found "*" is returned.
+
+```xquery
+1 => xbow:get-type() (: returns "xs:integer" :)
+```
+
+```xquery
+[1, 2, true()] => xbow:get-type() (: returns "array(*)" :)
+```
+
+```xquery
+[map {1: "one", 2: "two", 9:"nine"}, map {1: "eins", 2: "zwei", 9:"neun"}] 
+  => xbow:get-type() (: returns "array(map(xs:integer, xs:string))" :)
+```
+
 ## General Arrow Syntax
 
 **Remember:**
 
+The arrow operator _must_ be followed by a function expression.
+The first argument _will_ be the left hand side, there is no way around that.
+
 ```xquery
-  (0 to 9) => sum(),
-  (0 to 9) => (function($a) { sum($a) })()
+(0 to 9) => sum(),
+(0 to 9) => (function($a) { sum($a) })()
 ```
 is **fine**.
 
 ```xquery
-  (0 to 9) => concat(?)
+(0 to 9) => concat(?)
 ```
 will return **a function** with an arity of 1.
 
@@ -279,7 +300,10 @@ will throw an **exception**!
 - [ ] Generate XQDoc documentation at build
 
 - [x] Replace `ant` with `gulp-exist` +watcher 
-- [ ] Create packages for other XQuery runtimes
+- [ ] ~~Create packages for other XQuery runtimes~~
+- [ ] Split up into modules with separate scopes (DOM, utility, ...)
+- [ ] Add element constructors (inspired by Micheal Kays proposal)
+- [ ] Rename `xbow:groupBy` to `xbow:group-by` to adhere to the XQuery naming convetions
 
 ## Compatibility
 
