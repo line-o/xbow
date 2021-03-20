@@ -246,14 +246,17 @@ does not contain elements an empty sequence is returned.
 
 **Remember:**
 
+The arrow operator _must_ be followed by a function expression.
+The first argument _will_ be the left hand side, there is no way around that.
+
 ```xquery
-  (0 to 9) => sum(),
-  (0 to 9) => (function($a) { sum($a) })()
+(0 to 9) => sum(),
+(0 to 9) => (function($a) { sum($a) })()
 ```
 is **fine**.
 
 ```xquery
-  (0 to 9) => concat(?)
+(0 to 9) => concat(?)
 ```
 will return **a function** with an arity of 1.
 
