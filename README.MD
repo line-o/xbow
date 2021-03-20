@@ -242,6 +242,24 @@ does not contain elements an empty sequence is returned.
 (1, 2, []) => xbow:last() (: returns [] :)
 ```
 
+`xbow:get-type` will return type information of the provided item (not a sequence).
+
+NOTE: It will look deep into the inner structure of the item, if it is nested.
+Sequences as well as arities are not detected. Whenever mixed content is found "*" is returned.
+
+```xquery
+1 => xbow:get-type() (: returns "xs:integer" :)
+```
+
+```xquery
+[1, 2, true()] => xbow:get-type() (: returns "array(*)" :)
+```
+
+```xquery
+[map {1: "one", 2: "two", 9:"nine"}, map {1: "eins", 2: "zwei", 9:"neun"}] 
+  => xbow:get-type() (: returns "array(map(xs:integer, xs:string))" :)
+```
+
 ## General Arrow Syntax
 
 **Remember:**
