@@ -434,15 +434,88 @@ function xbow:map-flip ($map as map(*), $hash-value as function(*)) as map(*) {
         => map:merge()
 };
 
+(:~
+ : Get type information of $item
+ : will attempt to determine deep structure specific types
+ : 
+ : Example:
+   xbow:get-type([map{"a": true(), "b": false()}, map{"a":false()}]) 
+ : returns "array(map(xs:string, xs:boolean))"
+ :)
 declare
-function xbow:get-type ($item as item()) {
+function xbow:get-type ($item as item()?) as xs:string {
     typeswitch($item)
-        case element() return node-name($item)
-        case attribute() return local-name($item)
-        case array(*) return 'array'
-        case map(*) return 'map'
+        case element() return ``[element(`{name($item)}`)]``
+        case attribute() return ``[attribute(`{name($item)}`)]``
+
+        case text() return "text()"
+        case comment() return "comment()"
+
+        case array(*) return ``[array(`{xbow:array-type($item)}`)]``
+        case map(*) return ``[map(`{xbow:map-type($item)}`)]``
+
+        (: XQuery 3.1 does not specify inspection functions only arity can be read :)
+        case function(*) return "function(*)"
+
+        case xs:boolean return 'xs:boolean'
+        case xs:string return 'xs:string'
+
+        case xs:positiveInteger return 'xs:positiveInteger'
+        case xs:negativeInteger return 'xs:negativeInteger'
+        case xs:integer return 'xs:integer'
+        case xs:double return 'xs:double'
+        case xs:float return 'xs:float'
+        case xs:decimal return 'xs:decimal'
+
+        case xs:date return 'xs:date'
+        case xs:time return 'xs:time'
+        case xs:dateTime return 'xs:dateTime'
+
+        case xs:QName return 'xs:QName'
+        case xs:NCName return 'xs:NCName'
+
         case xs:anyAtomicType return 'xs:anyAtomicType'
-        default return 'other'
+        default return 'item()'
+};
+
+declare
+function xbow:array-type($array as array(*)) as xs:string {
+    if (array:size($array) eq 0)
+    then "*"
+    else array:fold-left($array, (), xbow:subtype-reducer#2)
+};
+
+declare
+function xbow:map-type($map as map(*)) as xs:string {
+    let $keys := map:keys($map)
+    return
+        if (count($keys) eq 0)
+        then "*"
+        else fold-left($keys, [(), ()], 
+            function ($result as array(xs:string), $next as xs:anyAtomicType) {
+                [
+                    xbow:subtype-reducer($result?1, $next),
+                    xbow:subtype-reducer($result?2, $map($next))
+                ]
+            })
+            => (function ($array as array(xs:string)) as xs:string {
+                if ($array?1 = "*" and $array?2 = "*")
+                then "*"
+                else string-join($array?*, ', ')
+            })()
+};
+
+declare %private
+function xbow:subtype-reducer ($result as xs:string?, $item as item()?) as xs:string {
+    if ($result = "*")
+    then $result (: fast-track mixed content :)
+    else if (not(exists($item)))
+    then "*"
+    else if (not(exists($result)))
+    then xbow:get-type($item)
+    else if (xbow:get-type($item) eq $result)
+    then $result
+    else "*"
 };
 
 (:~
