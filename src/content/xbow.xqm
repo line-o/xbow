@@ -340,6 +340,13 @@ function xbow:le ($comparison as item()) as function(*) {
 (: control-flow helpers :)
 
 declare
+function xbow:test ($item as item()*, $test as function(*), $then as function(*)) as item()* {
+    if ($test($item))
+    then ($then($item))
+    else ($item)
+};
+
+declare
 function xbow:if ($item as item()*, $test as function(*), $then as function(*), $else as function(*)) as item()* {
     if ($test($item))
     then ($then($item))
