@@ -337,7 +337,104 @@ function xbow:le ($comparison as item()) as function(*) {
     function ($i as item()) as xs:boolean { $i le $comparison }
 };
 
-(:~ wrapping values in nodes ~:)
+(: control-flow helpers :)
+
+declare
+function xbow:test ($item as item()*, $test as function(*), $then as function(*)) as item()* {
+    if ($test($item))
+    then ($then($item))
+    else ($item)
+};
+
+declare
+function xbow:if ($item as item()*, $test as function(*), $then as function(*), $else as function(*)) as item()* {
+    if ($test($item))
+    then ($then($item))
+    else ($else($item))
+};
+
+declare
+function xbow:and ($item as item()*, $a as function(*), $b as function(*)) as item()* {
+    if ($a($item) and $b($item))
+    then ($item)
+    else ()
+};
+
+declare
+function xbow:or ($item as item()*, $a as function(*), $b as function(*)) as item()* {
+    if ($a($item) or $b($item))
+    then ($item)
+    else ()
+};
+
+declare
+function xbow:xor ($item as item()*, $a as function(*), $b as function(*)) as item()* {
+    let $_a := $a($item)
+    let $_b := $b($item)
+    return
+        if (($_a or $_b) and not($_a and $_b))
+        then ($item)
+        else ()
+};
+
+declare
+function xbow:nor ($item as item()*, $a as function(*), $b as function(*)) as item()* {
+    if (not($a($item)) and not($b($item)))
+    then ($item)
+    else ()
+};
+
+(: node constructors
+ : these functions are inspired by a new standard proposed by Michael Kay
+ :)
+
+declare
+function xbow:attribute ($name as item()*) as function(xs:string) as attribute() {
+    typeswitch($name)
+    case xs:QName return xbow:attribute-ns($name, ?)
+    case xs:string return xbow:attribute($name, ?)
+    default return error(xs:QName("xbow:invalid-argument"), "Invalid type of $name in xbow:element#1, expected either xs:QName or xs:string")
+};
+
+declare
+function xbow:attribute-ns ($name as xs:QName, $contents as item()*, $joiner as xs:string) as attribute() {    
+    attribute { $name } { string-join($contents, $joiner) }
+};
+
+declare
+function xbow:attribute ($name as xs:string, $contents as item()*, $joiner as xs:string) as attribute() {    
+    attribute { $name } { string-join($contents, $joiner) }
+};
+
+declare
+function xbow:attribute-ns ($name as xs:QName, $value as xs:string) as attribute() {
+    attribute { $name } { $value }
+};
+
+declare
+function xbow:attribute ($name as xs:string, $value as xs:string) as attribute() {
+    attribute { $name } { $value }
+};
+
+declare
+function xbow:element ($name as item()) as function(item()*) as element() {
+    typeswitch($name)
+    case xs:QName return xbow:element-ns($name, ?)
+    case xs:string return xbow:element($name, ?)
+    default return error(xs:QName("xbow:invalid-argument"), "Invalid type of $name in xbow:element#1, expected either xs:QName or xs:string got: " || xbow:get-type($name))
+};
+
+declare
+function xbow:element ($name as xs:string, $contents as item()*) as element() {
+    element { $name } { $contents }
+};
+
+declare
+function xbow:element-ns ($name as xs:QName, $contents as item()*) as element() {
+    element { $name } { $contents }
+};
+
+(: wrapping values in nodes :)
 
 (:~
  : wrap item(s) in node with name $node-name
@@ -345,8 +442,16 @@ function xbow:le ($comparison as item()) as function(*) {
  : <$node-name>$item(s)</$node-name>
  :)
 declare
-function xbow:wrap-element ($value, $name) {
-    element { $name } { $value }
+function xbow:wrap-element ($contents as item()*, $name as item()) as element() {
+    typeswitch($name)
+    case xs:QName return xbow:element-ns($name, $contents)
+    case xs:string return xbow:element($name, $contents)
+    default return error(xs:QName("xbow:invalid-argument"), "Invalid type of $name in xbow:wrap-element#2, expected either xs:QName or xs:string for parameter two got: " || xbow:get-type($name))    
+};
+
+declare
+function xbow:wrap-attribute ($value as item()*, $attribute-name as xs:string) as attribute() {
+    xbow:attribute($attribute-name, string-join($value, ' '))
 };
 
 (:~
@@ -355,13 +460,8 @@ function xbow:wrap-element ($value, $name) {
  : multiple items will be joined into a single string separated by $joiner
  :)
 declare
-function xbow:wrap-attribute ($value as item()*, $attribute-name as xs:string, $joiner as xs:string) {
-    attribute { $attribute-name } { string-join($value, $joiner) }
-};
-
-declare
-function xbow:wrap-attribute ($value as item()*, $attribute-name as xs:string) {
-    xbow:wrap-attribute($value, $attribute-name, ' ')
+function xbow:wrap-attribute ($value as item()*, $name as xs:string, $joiner as xs:string) as attribute() {
+    xbow:attribute($name, string-join($value, $joiner))
 };
 
 (:~
@@ -375,26 +475,24 @@ function xbow:wrap-attribute ($value as item()*, $attribute-name as xs:string) {
 )
  :)
 declare
-function xbow:wrap-each ($values, $node-name as xs:string) {
-    for-each($values, xbow:wrap-element(?, $node-name))
+function xbow:wrap-each ($values as item()*, $node-name as xs:string) as element()* {
+    for-each($values, xbow:element($node-name, ?))
 };
 
 declare
-function xbow:wrap-map-attribute ($map as map(*)) {
-    map:for-each($map, function ($k, $v) { attribute { $k } { $v } })
+function xbow:wrap-map-attribute ($map as map(*)) as attribute()* {
+    map:for-each($map, xbow:attribute#2)
 };
 
 declare
-function xbow:wrap-map-element ($map as map(*)) {
-    map:for-each($map, function ($k, $v) { element { $k } { $v } })
+function xbow:wrap-map-element ($map as map(*)) as element()* {
+    map:for-each($map, xbow:element#2)
 };
 
 declare
-function xbow:map-filter-keys ($map as map(*), $keys as xs:string*) {
-    let $f := function ($key) { map:entry($key, $map($key)) }
-    
-    return
-        for-each ($keys, $f)
+function xbow:map-filter-keys ($map as map(*), $keys as xs:string*) as map(*) {    
+    for-each($keys, function ($key as xs:anyAtomicType) { 
+        map:entry($key, $map($key)) })
         => map:merge()
 };
 
@@ -518,6 +616,69 @@ function xbow:subtype-reducer ($result as xs:string?, $item as item()?) as xs:st
     else "*"
 };
 
+declare
+function xbow:instance-of($item as item()?, $type as xs:string) as xs:boolean {
+    (: complex types :)
+
+    if (starts-with($type, "array"))               then $item instance of array(*)
+    else if (starts-with($type, "map"))            then $item instance of map(*)
+    else if (starts-with($type, "function"))       then $item instance of function(*)
+    else if (starts-with($type, "node"))           then $item instance of node()
+    else if (starts-with($type, "element"))        then $item instance of element()
+    else if (starts-with($type, "attribute"))      then $item instance of attribute()
+    else if (starts-with($type, "text"))           then $item instance of text()
+    else if (starts-with($type, "document"))       then $item instance of document-node()
+
+    (: simple types :)
+        
+    else if (ends-with($type, "anyAtomicType"))    then $item instance of xs:anyAtomicType
+    else if (ends-with($type, "string"))           then $item instance of xs:string
+    else if (ends-with($type, "numeric"))          then $item instance of xs:numeric
+    else if (ends-with($type, "decimal"))          then $item instance of xs:decimal
+    else if (ends-with($type, "integer"))          then $item instance of xs:integer
+    else if (ends-with($type, "dateTime"))         then $item instance of xs:dateTime
+    else if (ends-with($type, "date"))             then $item instance of xs:date
+    else if (ends-with($type, "time"))             then $item instance of xs:time
+    else if (ends-with($type, "boolean"))          then $item instance of xs:boolean
+
+    (: generic types :)
+
+    else if (starts-with($type, "item"))           then $item instance of item()
+    else if (starts-with($type, "empty-sequence")) then $item instance of empty-sequence()
+
+    (: unknown types :)
+
+    else error(xs:QName("xbow:unknown-type"), "Unknown or unsupported type:'" || $type || "'.")
+};
+
+(:~
+ : flip the order of arguments of a function with exactly two
+ : parameters
+ : @param function(*) $f two argument function 
+ : @returns calls function $f with its arguments flipped
+ :)
+declare
+function xbow:flip-arguments ($a as item()*, $b as item()*, $f as function(item()*, item()*) as item()*) as function(*) {
+    if (function-arity($f) ne 2)
+    then (
+        error(
+            xs:QName('xbow:wrong-number-of-arguments'),
+            ``[Received a function with an arity of `{function-arity($f)}` to xbow:flip-arguments but must be exactly 2]``
+        )
+    )
+    else ($f($b, $a))
+};
+
+declare
+function xbow:apply-insert-at ($argument as item()*, $function as function(*), $position as xs:integer, $other-arguments as array(*)) as item()* {
+    apply($function, array:put($other-arguments, $position, $argument))
+};
+
+declare
+function xbow:apply-as-last ($argument as item()*, $function as function(*), $other-arguments as array(*)) as item()* {
+    apply($function, array:append($other-arguments, $argument))
+};
+
 (:~
  : combine a sequence of $functions and returns the combined function
  :)
@@ -615,8 +776,8 @@ function xbow:array-put ($array as array(*), $pos as xs:integer, $items-to-put a
 };
 
 (:~
- : Return the last item in a sequence
- : will return an empty array if array is empty
+ : Return the last item in a sequence or array.
+ : Will return an empty sequence if array or sequence is empty
  :)
 declare
 function xbow:last($array-or-sequence as item()*) as item()? {
@@ -628,8 +789,8 @@ function xbow:last($array-or-sequence as item()*) as item()? {
 };
 
 (:~
- : Return the last item in a sequence
- : will return an empty array if array is empty
+ : Return the last item in a sequence.
+ : Will return an empty sequence if sequence is empty
  :)
 declare
 function xbow:last-item-of($seq as item()*) as item()? {
@@ -639,8 +800,8 @@ function xbow:last-item-of($seq as item()*) as item()? {
 };
 
 (:~
- : Return the last item in array (guarded)
- : will return an empty array if array is empty
+ : Return the last item in array.
+ : Will return an empty sequence if array is empty
  :)
 declare
 function xbow:last-member-of($array as array(*)) as item()? {
