@@ -397,7 +397,12 @@ function xbow:attribute ($name as item()*) as function(xs:string) as attribute()
 };
 
 declare
-function xbow:attribute ($name as xs:QName, $contents as item()*, $joiner as xs:string) as attribute() {    
+function xbow:attribute-ns ($name as xs:QName, $contents as item()*, $joiner as xs:string) as attribute() {    
+    attribute { $name } { string-join($contents, $joiner) }
+};
+
+declare
+function xbow:attribute ($name as xs:string, $contents as item()*, $joiner as xs:string) as attribute() {    
     attribute { $name } { string-join($contents, $joiner) }
 };
 
@@ -437,8 +442,11 @@ function xbow:element-ns ($name as xs:QName, $contents as item()*) as element() 
  : <$node-name>$item(s)</$node-name>
  :)
 declare
-function xbow:wrap-element ($contents as item()*, $name as xs:string) as element() {
-    xbow:element($name, $contents)
+function xbow:wrap-element ($contents as item()*, $name as item()) as element() {
+    typeswitch($name)
+    case xs:QName return xbow:element-ns($name, $contents)
+    case xs:string return xbow:element($name, $contents)
+    default return error(xs:QName("xbow:invalid-argument"), "Invalid type of $name in xbow:wrap-element#2, expected either xs:QName or xs:string for parameter two got: " || xbow:get-type($name))    
 };
 
 declare
