@@ -24,7 +24,7 @@
     "gulp-replace": "^1.0.0",
     "gulp-zip": "^5.0.2",
     "mocha": "^8.2.1",
-    "semantic-release": "^17.3.3",
+    "semantic-release": "^19.0.3",
     "superagent": "^6.1.0"
   },
   "author": {
