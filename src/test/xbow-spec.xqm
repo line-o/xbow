@@ -67,13 +67,6 @@ declare
 function xbow-spec:age-accessor ($i as element()) as xs:integer { xs:integer($i/@age) };
 
 declare 
-    %test:assertEquals('function(*)', '1')
-function xbow-spec:lt-returns-function () {
-    let $f := xbow:lt(8)
-    return (xbow:get-type($f), function-arity($f))
-};
-
-declare 
     %test:assertTrue
 function xbow-spec:lt-returns-boolean () {
     xbow:lt(8)(7)
@@ -306,78 +299,6 @@ function xbow-spec:array-duplicate-values-accessor () {
         => string-join()
 };
 
-(: node constructors
- : these functions are inspired by a new standard proposed by Michael Kay
- :)
-
-declare
-    %test:assertEquals('<a href="http://line-o.de">My webpage</a>')
-function xbow-spec:element () {
-    xbow:element("a", (
-        xbow:attribute("href", "http://line-o.de"),
-        "My webpage"
-    ))
-};
-
-declare
-    %test:assertEquals('<svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 50 50"><path d="M 10 10 L 20 20 L 40 10 Z"/></svg>')
-function xbow-spec:element-constructors () {
-    let $svg := QName("http://www.w3.org/2000/svg", ?)
-    let $fac := 10
-    let $dim := (0, 0, 5 * $fac, 5 * $fac)
-    let $points := [
-        ("M", 1 * $fac, 1 * $fac), 
-        ("L", 2 * $fac, 2 * $fac),
-        ("L", 4 * $fac, 1 * $fac),
-        "Z"
-    ]
-
-    return (
-        xbow:attribute("viewbox", $dim, " "),
-        xbow:element-ns($svg("path"), xbow:attribute("d", $points?*, " "))
-    )
-    => xbow:wrap-element($svg("svg"))
-};
-
-
-declare
-    %test:assertEquals('<a>1</a>')
-function xbow-spec:wrap () {
-    1 => xbow:wrap-element('a')
-};
-
-declare
-    %test:assertEquals('<a>1</a>','<a>2</a>','<a>3</a>','<a>4</a>','<a>5</a>','<a>6</a>')
-function xbow-spec:wrap-each () {
-    (1 to 6) 
-        => xbow:wrap-each('a')
-};
-
-declare
-    %test:assertTrue
-function xbow-spec:wrap-map-element () {
-    map {
-        'a': 1,
-        'b': 2
-    }
-        => xbow:wrap-map-element()
-        => xbow:wrap-element('root')
-        => (function ($nodes as node()+) {
-            $nodes/a/text() eq '1' and
-            $nodes/b/text() eq '2'
-        })()
-};
-
-declare
-    %test:assertEquals('<root a="1" b="2" />')
-function xbow-spec:wrap-map-attribute () {
-    map {
-        'a': 1,
-        'b': 2
-    }
-        => xbow:wrap-map-attribute()
-        => xbow:wrap-element('root')
-};
 
 declare
     %test:assertEqualsPermutation('a','b','h')
@@ -433,57 +354,6 @@ function xbow-spec:map-flip-function-sum () {
     map { 'key': (1 to 10) }
         => xbow:map-flip(sum(?))
         => map:keys()
-};
-
-declare
-    %test:args('()')
-    %test:assertEquals("item()")
-    %test:args('""')
-    %test:assertEquals("xs:string")
-    %test:args('1')
-    %test:assertEquals("xs:integer")
-    %test:args('1.2')
-    %test:assertEquals("xs:decimal")
-    %test:args('xs:date("1999-01-01")')
-    %test:assertEquals("xs:date")
-    %test:args('xs:QName("test:test")')
-    %test:assertEquals("xs:QName")
-    %test:args('attribute xml:id { "B" }')
-    %test:assertEquals("attribute(xml:id)")
-    %test:args('attribute id { "A" }')
-    %test:assertEquals("attribute(id)")
-    %test:args('element test:test { }')
-    %test:assertEquals("element(test:test)")
-    %test:args('element html { }')
-    %test:assertEquals("element(html)")
-    %test:args('comment { "no comment" }')
-    %test:assertEquals("comment()")
-    %test:args('text { "" }')
-    %test:assertEquals("text()")
-    %test:args('function () as xs:integer { 1 }')
-    %test:assertEquals("function(*)")
-    %test:args('function ($a as node()*) as xs:integer { count($a) }')
-    %test:assertEquals("function(*)")
-    %test:args('map{}')
-    %test:assertEquals("map(*)")
-    %test:args('map{"a": 1, 1: "a"}')
-    %test:assertEquals("map(*)")
-    %test:args('map{"a": "b"}')
-    %test:assertEquals("map(xs:string, xs:string)")
-    %test:args('map{"a": 12}')
-    %test:assertEquals("map(xs:string, xs:integer)")
-    %test:args('map{"a": 12, "b": ()}')
-    %test:assertEquals("map(xs:string, *)")
-    %test:args('map{1: 12, 2: ()}')
-    %test:assertEquals("map(xs:integer, *)")
-    %test:args('[]')
-    %test:assertEquals("array(*)")
-    %test:args('["a", "b"]')
-    %test:assertEquals("array(xs:string)")
-    %test:args('[map{}, map{}]')
-    %test:assertEquals("array(map(*))")
-function xbow-spec:get-type ($type) {
-    util:eval("xbow:get-type(" || $type || ")")
 };
 
 declare
@@ -565,68 +435,6 @@ declare
 function xbow-spec:some-false2 () {
     $xbow-spec:user-xml/user
         => xbow:some(xbow:eq(1000, xbow-spec:age-accessor#1))
-};
-
-declare
-    %test:assertEquals(2)
-function xbow-spec:categorize-numbers () {
-    (-10 to 10)
-        => xbow:categorize([ xbow:lt(0), xbow:ge(0) ])
-        => array:size()
-};
-
-declare
-    %test:assertEquals(0)
-function xbow-spec:categorize-none-match () {
-    (0 to 10)
-        => xbow:categorize([ xbow:lt(0), xbow:gt(10) ])
-        => (function ($arr) { (count($arr?1), count($arr?2)) => sum() })()
-};
-
-declare
-    %test:assertEquals(2)
-function xbow-spec:categorize-number-of-categories () {
-    $xbow-spec:user-xml/user
-        => xbow:categorize(
-            [ xbow:lt(21), xbow:ge(21) ],
-            xbow-spec:age-accessor#1
-        )
-        => array:size()
-};
-
-declare
-    %test:assertEquals("2", "8")
-function xbow-spec:categorize-number-of-items () {
-    $xbow-spec:user-xml/user
-        => xbow:categorize(
-            [ xbow:lt(21), xbow:ge(21) ],
-            xbow-spec:age-accessor#1
-        )
-        => array:for-each(function ($items) { count($items) })
-        => xbow:to-sequence()
-};
-
-declare
-    %test:assertEquals("<user first=&quot;Susan&quot; last=&quot;Young&quot; age=&quot;8&quot;/>","<user first=&quot;Chris&quot; last=&quot;Christie&quot; age=&quot;15&quot;/>")
-function xbow-spec:categorize-items () {
-    $xbow-spec:user-xml/user
-        => xbow:categorize(
-            [ xbow:lt(21), xbow:ge(21) ],
-            xbow-spec:age-accessor#1
-        )
-        => (function ($arr) { $arr?1 })()
-};
-
-declare
-    %test:assertEquals("underage", "2")
-function xbow-spec:label-categorized-items () {
-    $xbow-spec:user-xml/user
-        => xbow:categorize(
-            [ xbow:lt(21), xbow:ge(21) ],
-            xbow-spec:age-accessor#1
-        )
-        => xbow:label(['underage', 'adult'])
-        => (function ($arr) { $arr?1?label, count($arr?1?items) })()
 };
 
 declare
@@ -732,5 +540,23 @@ declare
     %test:assertEmpty
 function xbow-spec:items-at-empty-sequence () as item()* {
     xbow:items-at((), (3, 1, 9))
+};
+
+declare
+    %test:assertEmpty
+function xbow-spec:test-exists-empty () as item()* {
+    xbow:test((), exists#1, concat('"', ?, '" existed'))
+};
+
+declare
+    %test:assertEquals('"node" existed')
+function xbow-spec:test-exists-node () as item()* {
+    xbow:test(<node>node</node>, exists#1, concat('"', ?, '" existed'))
+};
+
+declare
+    %test:assertEquals(11)
+function xbow-spec:test-exists-sequence () as item()* {
+    xbow:test((2, 4, 5), exists#1, sum#1)
 };
 
