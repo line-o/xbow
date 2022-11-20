@@ -709,3 +709,28 @@ function xbow-spec:last-item-is-array () {
         => xbow:last()
         => array:get(1)
 };
+
+declare
+    %test:assertEquals("b")
+function xbow-spec:items-at-single () as item()* {
+    xbow:items-at(("a","b"), 2)
+};
+
+declare
+    %test:assertEquals(3,1,9)
+function xbow-spec:items-at-multiple () as item()* {
+    xbow:items-at((1 to 9), (3, 1, 9))
+};
+
+declare
+    %test:assertEmpty
+function xbow-spec:items-at-no-index () as item()* {
+    xbow:items-at((1 to 9), ())
+};
+
+declare
+    %test:assertEmpty
+function xbow-spec:items-at-empty-sequence () as item()* {
+    xbow:items-at((), (3, 1, 9))
+};
+

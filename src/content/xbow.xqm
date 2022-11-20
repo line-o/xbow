@@ -32,6 +32,10 @@ function xbow:last ($s as item()*, $n as xs:integer) as item()* {
     subsequence($s, $n, count($s) - $n)
 };
 
+declare
+function xbow:items-at ($s as item()*, $n as xs:integer*) as item()* {
+    for-each($n, subsequence($s, ?, 1))
+};
 
 (:~
  : sort sequence $s by sorting function $f
