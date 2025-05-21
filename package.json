@@ -24,6 +24,8 @@
     "gulp-replace": "^1.0.0",
     "gulp-zip": "^5.0.2",
     "mocha": "^8.2.1",
+    "prettier": "^3.5.3",
+    "prettier-plugin-xquery": "^0.0.8",
     "semantic-release": "^17.3.3",
     "superagent": "^6.1.0"
   },
@@ -35,7 +37,8 @@
   "scripts": {
     "test": "mocha src/test/mocha/*.js",
     "start": "gulp install",
-    "build": "gulp build"
+    "build": "gulp build",
+    "prettier": "prettier ./**/*.xq* --write"
   },
   "repository": {
     "type": "git",

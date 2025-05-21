@@ -1,9 +1,9 @@
-xquery version "3.1";
+xquery version '3.1';
 
 import module namespace xbow = 'http://line-o.de/xq/xbow';
 
-let $data := 
-<persons>
+let $data :=
+	<persons>
     <person posts="3" name="Berta" />
     <person posts="1" name="Anne" />
     <person posts="17" name="Jules" />
@@ -18,11 +18,10 @@ let $data :=
     <person posts="9" name="Isabella" />
     <person posts="45" name="Laura" />
 </persons>
-
-let $activity-rules := [ xbow:lt(5), xbow:lt(20), xbow:ge(20) ]
-let $activity-labels := [ 'inactive', 'active', 'hyperactive' ]
-let $post-accessor := function ($i as element(person)) { xs:integer($i/@posts) }
-
-return $data/person
-    => xbow:categorize($activity-rules, $post-accessor)
-    => xbow:label($activity-labels)
+let $activity-rules := [xbow:lt(5), xbow:lt(20), xbow:ge(20)]
+let $activity-labels := ['inactive', 'active', 'hyperactive']
+let $post-accessor :=
+	function ($i as element(person)) {
+		xs:integer($i/@posts)
+	}
+return $data/person => xbow:categorize($activity-rules, $post-accessor) => xbow:label($activity-labels)
