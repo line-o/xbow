@@ -525,24 +525,24 @@ declare function xbow:array-type ($array as array(*)) as xs:string {
 declare function xbow:map-type ($map as map(*)) as xs:string {
 	let $keys := map:keys($map)
 	return if (count($keys) eq 0) then (
-			'*'
-		) else (
-			fold-left(
-				$keys,
-				[(), ()],
-				function ($result as array(xs:string), $next as xs:anyAtomicType) {
-					[xbow:subtype-reducer($result?1, $next), xbow:subtype-reducer($result?2, $map($next))]
-				}
-			)
-				=> (
-					function ($array as array(xs:string)) as xs:string {
-						if ($array?1 = '*' and $array?2 = '*') then
-							'*'
-						else
-							string-join($array?*, ', ')
-					}
-				)()
+		'*'
+	) else (
+		fold-left(
+			$keys,
+			[(), ()],
+			function ($result as array(xs:string), $next as xs:anyAtomicType) {
+				[xbow:subtype-reducer($result?1, $next), xbow:subtype-reducer($result?2, $map($next))]
+			}
 		)
+			=> (
+				function ($array as array(xs:string)) as xs:string {
+					if ($array?1 = '*' and $array?2 = '*') then
+						'*'
+					else
+						string-join($array?*, ', ')
+				}
+			)()
+	)
 };
 
 declare %private function xbow:subtype-reducer (
@@ -600,19 +600,19 @@ declare function xbow:categorize (
 	let $zero := xbow:array-fill(array:size($rules), ())
 
 	return fold-left(
-			$sequence,
-			$zero,
-			function ($result as array(*), $item as item()) {
-				let $pos := $test($item)
+		$sequence,
+		$zero,
+		function ($result as array(*), $item as item()) {
+			let $pos := $test($item)
 
-				return if ($pos eq 0) then (
-						$result
-					) else (
-						(: $item did not match any criteria :)
-						xbow:array-put($result, $pos, ($result($pos), $item))
-					)
-			}
-		)
+			return if ($pos eq 0) then (
+				$result
+			) else (
+				(: $item did not match any criteria :)
+				xbow:array-put($result, $pos, ($result($pos), $item))
+			)
+		}
+	)
 };
 
 (:~
@@ -627,19 +627,19 @@ declare function xbow:categorize (
 	let $zero := xbow:array-fill(array:size($rules), ())
 
 	return fold-left(
-			$sequence,
-			$zero,
-			function ($result as array(*), $item as item()) {
-				let $pos := $test($accessor($item))
+		$sequence,
+		$zero,
+		function ($result as array(*), $item as item()) {
+			let $pos := $test($accessor($item))
 
-				return if ($pos eq 0) then (
-						$result
-					) else (
-						(: $item did not match any criteria :)
-						xbow:array-put($result, $pos, ($result($pos), $item))
-					)
-			}
-		)
+			return if ($pos eq 0) then (
+				$result
+			) else (
+				(: $item did not match any criteria :)
+				xbow:array-put($result, $pos, ($result($pos), $item))
+			)
+		}
+	)
 };
 
 (:~
@@ -784,12 +784,12 @@ declare %private function xbow:match-first (
 	let $current-match := tail($result)
 
 	return if ($current-match > 0) then (
-			$result (: did match, do nothing :)
-		) else if ($rule($item)) then (
-			$current-pos, $current-pos
-		) else (
-			$current-pos, $current-match
-		)
+		$result (: did match, do nothing :)
+	) else if ($rule($item)) then (
+		$current-pos, $current-pos
+	) else (
+		$current-pos, $current-match
+	)
 };
 
 declare %private function xbow:match-all (
@@ -801,10 +801,10 @@ declare %private function xbow:match-all (
 	let $current-match := tail($result)
 
 	return if ($rule($item)) then (
-			$current-pos, $current-pos
-		) else (
-			$current-pos, $current-match
-		)
+		$current-pos, $current-pos
+	) else (
+		$current-pos, $current-match
+	)
 };
 
 declare %private function xbow:find-first-matching (

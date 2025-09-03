@@ -23,5 +23,5 @@ let $activity-labels := ['inactive', 'active', 'hyperactive']
 let $post-accessor := function ($i as element(person)) { xs:integer($i/@posts) }
 
 return $data/person
-		=> xbow:categorize($activity-rules, $post-accessor)
-		=> xbow:label($activity-labels)
+	=> xbow:categorize($activity-rules, $post-accessor)
+	=> xbow:label($activity-labels)
